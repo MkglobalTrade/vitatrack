@@ -1,5 +1,5 @@
 {
-  "name": "health-tracker",
+  "name": "vitatrack",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -30,9 +30,6 @@
     "html2canvas": "^1.4.1",
     "openai": "^4.52.0",
     "date-fns": "^3.6.0",
-    "react-hook-form": "^7.52.0",
-    "zod": "^3.23.8",
-    "@hookform/resolvers": "^3.6.0",
     "uuid": "^9.0.1",
     "@types/uuid": "^9.0.8",
     "clsx": "^2.1.1",

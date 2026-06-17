@@ -1,200 +1,235 @@
 'use client'
 
 import { useMemo } from 'react'
-import { useRouter } from 'next/navigation'
-import { format } from 'date-fns'
+import { format, subDays } from 'date-fns'
 import {
-  Droplets, HeartPulse, Pill, FileText, TrendingUp, Activity, Calendar, ArrowRight, Sparkles, ChevronRight, Zap
+  Activity, Droplets, HeartPulse, Pill, FileText,
+  TrendingUp, TrendingDown, ArrowRight, Sparkles, Plus, Upload,
 } from 'lucide-react'
 import { useHealthData } from '@/hooks/useHealthData'
-import { StatsCard } from '@/components/StatsCard'
-import { QuickActions } from '@/components/QuickActions'
-import { SugarChart, BPChart } from '@/components/HealthChart'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { getSugarStatus, getBPStatus, getCategoryById } from '@/lib/health-categories'
-import { cn } from '@/lib/utils'
+import { StatsCard } from '@/components/StatsCard'
+import { SugarChart, BPChart } from '@/components/HealthChart'
+import { QuickActions } from '@/components/QuickActions'
+import { PersonalBanner } from '@/components/PersonalBanner'
+import { getSugarStatus, getBPStatus } from '@/lib/health-categories'
+import Link from 'next/link'
 
 export default function HomePage() {
-  const router = useRouter()
   const {
-    sugarReadings, bpReadings, labResults, medications,
-    getSugarStats, getBPStats, getTodaySugar, getTodayBP, getTodayMedications, getLabsByCategory
+    sugarReadings,
+    bpReadings,
+    labResults,
+    medications,
+    getSugarStats,
+    getBPStats,
+    getTodayMedications,
   } = useHealthData()
 
   const sugarStats = getSugarStats(7)
   const bpStats = getBPStats(7)
-  const todaySugar = getTodaySugar()
-  const todayBP = getTodayBP()
   const todayMeds = getTodayMedications()
-  const labsByCategory = getLabsByCategory()
   const latestSugar = sugarReadings[0]
   const latestBP = bpReadings[0]
-  const activeMedsCount = medications.filter(m => m.active).length
-  const pendingMeds = todayMeds.filter(m => !m.morningTaken || !m.eveningTaken).length
 
-  const sugarChartData = useMemo(() => sugarReadings.slice(0, 14).map(r => ({ date: r.date, value: r.value, unit: r.unit })), [sugarReadings])
-  const bpChartData = useMemo(() => bpReadings.slice(0, 14).map(r => ({ date: r.date, systolic: r.systolic, diastolic: r.diastolic })), [bpReadings])
+  const sugarChartData = useMemo(() =>
+    sugarReadings.slice(0, 14).map(r => ({
+      date: r.date,
+      value: r.value,
+      unit: r.unit,
+    })),
+    [sugarReadings]
+  )
+
+  const bpChartData = useMemo(() =>
+    bpReadings.slice(0, 14).map(r => ({
+      date: r.date,
+      systolic: r.systolic,
+      diastolic: r.diastolic,
+    })),
+    [bpReadings]
+  )
+
+  const recentLabs = labResults.slice(0, 3)
+  const pendingMeds = todayMeds.filter(m => !m.morningTaken || !m.eveningTaken)
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 animate-fade-in">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {format(new Date(), 'EEEE, MMMM do, yyyy')}
-          </p>
-        </div>
-        <Button onClick={() => router.push('/dr-ai/')} className="gap-2 bg-gradient-to-r from-primary to-sky-400 hover:opacity-90 shadow-lg shadow-primary/20 w-fit">
-          <Sparkles className="w-4 h-4" />
-          Ask Dr. AI
-        </Button>
-      </div>
+      {/* Personal Banner */}
+      <PersonalBanner />
 
+      {/* Quick Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatsCard title="Latest Glucose" value={latestSugar ? `${latestSugar.value} ${latestSugar.unit}` : 'No data'}
-          subtitle={latestSugar ? getSugarStatus(latestSugar.value, latestSugar.unit).status : 'Add a reading'}
+        <StatsCard
+          title="Latest Glucose"
+          value={latestSugar ? `${latestSugar.value}` : '--'}
+          subtitle={latestSugar ? `${latestSugar.unit} — ${getSugarStatus(latestSugar.value, latestSugar.unit).status}` : 'No data'}
           icon={<Droplets className="w-5 h-5" style={{ color: latestSugar ? getSugarStatus(latestSugar.value, latestSugar.unit).color : '#6b7280' }} />}
           color={latestSugar ? getSugarStatus(latestSugar.value, latestSugar.unit).color : '#6b7280'}
-          onClick={() => router.push('/upload/')} />
-        <StatsCard title="Blood Pressure" value={latestBP ? `${latestBP.systolic}/${latestBP.diastolic}` : 'No data'}
-          subtitle={latestBP ? getBPStatus(latestBP.systolic, latestBP.diastolic).status : 'Add a reading'}
+          trend={sugarStats ? { value: Math.round((sugarStats.avg - (sugarReadings[6]?.value || sugarStats.avg)) / sugarStats.avg * 100), label: 'vs last week' } : undefined}
+        />
+        <StatsCard
+          title="Latest BP"
+          value={latestBP ? `${latestBP.systolic}/${latestBP.diastolic}` : '--/--'}
+          subtitle={latestBP ? getBPStatus(latestBP.systolic, latestBP.diastolic).status : 'No data'}
           icon={<HeartPulse className="w-5 h-5" style={{ color: latestBP ? getBPStatus(latestBP.systolic, latestBP.diastolic).color : '#6b7280' }} />}
           color={latestBP ? getBPStatus(latestBP.systolic, latestBP.diastolic).color : '#6b7280'}
-          onClick={() => router.push('/blood-pressure/')} />
-        <StatsCard title="Medications" value={`${activeMedsCount} Active`}
-          subtitle={pendingMeds > 0 ? `${pendingMeds} pending today` : 'All caught up!'}
+        />
+        <StatsCard
+          title="Pending Meds"
+          value={pendingMeds.length}
+          subtitle={pendingMeds.length === 0 ? 'All caught up!' : `${pendingMeds.length} remaining`}
           icon={<Pill className="w-5 h-5 text-purple-500" />}
           color="#8b5cf6"
-          onClick={() => router.push('/medications/')} />
-        <StatsCard title="Lab Reports" value={labResults.length}
-          subtitle={`${Object.keys(labsByCategory).length} categories`}
+        />
+        <StatsCard
+          title="Lab Reports"
+          value={labResults.length}
+          subtitle={`${recentLabs.length} recent`}
           icon={<FileText className="w-5 h-5 text-blue-500" />}
           color="#3b82f6"
-          onClick={() => router.push('/upload/')} />
+        />
       </div>
 
+      {/* Quick Actions */}
       <QuickActions />
 
+      {/* Charts Section */}
+      {(sugarChartData.length > 0 || bpChartData.length > 0) && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {sugarChartData.length > 0 && <SugarChart data={sugarChartData} />}
+          {bpChartData.length > 0 && <BPChart data={bpChartData} />}
+        </div>
+      )}
+
+      {/* Today's Summary */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {sugarChartData.length > 0 && <SugarChart data={sugarChartData} />}
-        {bpChartData.length > 0 && <BPChart data={bpChartData} />}
+        {/* Medications Today */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Pill className="w-5 h-5 text-purple-500" />
+              Today's Medications
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {todayMeds.length === 0 ? (
+              <div className="text-center py-6">
+                <Pill className="w-10 h-10 text-muted-foreground mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">No medications for today</p>
+                <Link href="/medications/">
+                  <Button variant="outline" size="sm" className="mt-3 gap-1">
+                    <Plus className="w-3 h-3" /> Add Medication
+                  </Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {todayMeds.map(med => (
+                  <div key={med.id} className="flex items-center justify-between p-2.5 rounded-lg border border-border">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-2 h-2 rounded-full ${med.morningTaken && med.eveningTaken ? 'bg-green-500' : 'bg-yellow-500'}`} />
+                      <span className="text-sm font-medium">{med.name}</span>
+                      <span className="text-xs text-muted-foreground">{med.dosage}</span>
+                    </div>
+                    <div className="flex gap-1">
+                      {(med.frequency === 'morning' || med.frequency === 'both') && (
+                        <Badge variant={med.morningTaken ? 'success' : 'secondary'} className="text-[10px]">
+                          {med.morningTaken ? '✓ AM' : 'AM'}
+                        </Badge>
+                      )}
+                      {(med.frequency === 'evening' || med.frequency === 'both') && (
+                        <Badge variant={med.eveningTaken ? 'success' : 'secondary'} className="text-[10px]">
+                          {med.eveningTaken ? '✓ PM' : 'PM'}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                {pendingMeds.length > 0 && (
+                  <Link href="/medications/">
+                    <Button variant="ghost" size="sm" className="w-full gap-1 text-xs">
+                      Take medications <ArrowRight className="w-3 h-3" />
+                    </Button>
+                  </Link>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Recent Labs */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <FileText className="w-5 h-5 text-blue-500" />
+              Recent Lab Reports
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {recentLabs.length === 0 ? (
+              <div className="text-center py-6">
+                <FileText className="w-10 h-10 text-muted-foreground mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">No lab reports yet</p>
+                <Link href="/upload/">
+                  <Button variant="outline" size="sm" className="mt-3 gap-1">
+                    <Upload className="w-3 h-3" /> Upload Report
+                  </Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {recentLabs.map(lab => {
+                  const cat = getCategoryById(lab.category)
+                  return (
+                    <div key={lab.id} className="flex items-center gap-3 p-2.5 rounded-lg border border-border hover:shadow-sm transition-all">
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: cat.color + '15' }}>
+                        <FileText className="w-4 h-4" style={{ color: cat.color }} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{lab.title}</p>
+                        <p className="text-xs text-muted-foreground">{format(new Date(lab.date), 'MMM d, yyyy')}</p>
+                      </div>
+                      <Badge style={{ backgroundColor: cat.color, color: '#fff' }} className="text-[10px]">
+                        {cat.label}
+                      </Badge>
+                    </div>
+                  )
+                })}
+                <Link href="/upload/">
+                  <Button variant="ghost" size="sm" className="w-full gap-1 text-xs">
+                    View all reports <ArrowRight className="w-3 h-3" />
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-primary" />
-            Today's Summary
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <h4 className="text-sm font-medium text-muted-foreground mb-2">Glucose Readings</h4>
-            {todaySugar.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No readings today. <Button variant="link" className="h-auto p-0 text-primary" onClick={() => router.push('/upload/')}>Add one</Button></p>
-            ) : (
-              <div className="flex gap-2 flex-wrap">
-                {todaySugar.map(r => {
-                  const s = getSugarStatus(r.value, r.unit)
-                  return <Badge key={r.id} style={{ backgroundColor: s.color, color: '#fff' }}>{r.value} {r.unit} — {r.timeOfDay}</Badge>
-                })}
+      {/* Dr. AI Teaser */}
+      <Card className="bg-gradient-to-r from-primary/5 to-sky-400/5 border-primary/20">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-sky-400 flex items-center justify-center shadow-lg">
+                <Sparkles className="w-6 h-6 text-white" />
               </div>
-            )}
-          </div>
-          <div>
-            <h4 className="text-sm font-medium text-muted-foreground mb-2">Blood Pressure</h4>
-            {todayBP.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No readings today. <Button variant="link" className="h-auto p-0 text-primary" onClick={() => router.push('/blood-pressure/')}>Add one</Button></p>
-            ) : (
-              <div className="flex gap-2 flex-wrap">
-                {todayBP.map(r => {
-                  const s = getBPStatus(r.systolic, r.diastolic)
-                  return <Badge key={r.id} style={{ backgroundColor: s.color, color: '#fff' }}>{r.systolic}/{r.diastolic} — {r.timeOfDay}</Badge>
-                })}
+              <div>
+                <h3 className="font-semibold">Ask Dr. AI</h3>
+                <p className="text-sm text-muted-foreground">Get personalized health insights based on your data</p>
               </div>
-            )}
-          </div>
-          <div>
-            <h4 className="text-sm font-medium text-muted-foreground mb-2">Medications</h4>
-            {todayMeds.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No active medications. <Button variant="link" className="h-auto p-0 text-primary" onClick={() => router.push('/medications/')}>Add one</Button></p>
-            ) : (
-              <div className="flex gap-2 flex-wrap">
-                {todayMeds.map(m => (
-                  <Badge key={m.id} variant={(m.morningTaken && m.eveningTaken) ? 'success' : 'warning'}>
-                    {m.name} {m.dosage}
-                  </Badge>
-                ))}
-              </div>
-            )}
+            </div>
+            <Link href="/dr-ai/">
+              <Button className="gap-2 bg-gradient-to-r from-primary to-sky-400 hover:opacity-90">
+                Chat Now <ArrowRight className="w-4 h-4" />
+              </Button>
+            </Link>
           </div>
         </CardContent>
       </Card>
-
-      {labResults.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <FileText className="w-5 h-5 text-blue-500" />
-              Lab Results by Category
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {Object.entries(labsByCategory).map(([category, labs]) => {
-                const cat = getCategoryById(category)
-                return (
-                  <div key={category} className="p-3 rounded-lg border border-border hover:shadow-sm transition-all cursor-pointer group" onClick={() => router.push('/upload/')}>
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: cat.color }} />
-                      <span className="text-sm font-medium">{cat.label}</span>
-                    </div>
-                    <p className="text-2xl font-bold">{labs.length}</p>
-                    <p className="text-xs text-muted-foreground">reports</p>
-                  </div>
-                )
-              })}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {(sugarStats || bpStats) && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-green-500" />
-              7-Day Averages
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {sugarStats && (
-                <div className="p-4 rounded-xl bg-gradient-to-br from-orange-50 to-amber-50 border border-orange-100 dark:from-orange-950/20 dark:to-amber-950/20 dark:border-orange-900/30">
-                  <p className="text-sm text-muted-foreground mb-1">Glucose Average</p>
-                  <p className="text-3xl font-bold text-orange-600">{Math.round(sugarStats.avg)} <span className="text-sm font-normal text-orange-500">mg/dL</span></p>
-                  <div className="flex gap-3 mt-2 text-xs">
-                    <span className="text-green-600 font-medium">Min: {Math.round(sugarStats.min)}</span>
-                    <span className="text-red-600 font-medium">Max: {Math.round(sugarStats.max)}</span>
-                    <span className="text-muted-foreground">{sugarStats.count} readings</span>
-                  </div>
-                </div>
-              )}
-              {bpStats && (
-                <div className="p-4 rounded-xl bg-gradient-to-br from-red-50 to-rose-50 border border-red-100 dark:from-red-950/20 dark:to-rose-950/20 dark:border-red-900/30">
-                  <p className="text-sm text-muted-foreground mb-1">BP Average</p>
-                  <p className="text-3xl font-bold text-red-600">{bpStats.avgSystolic}/{bpStats.avgDiastolic}</p>
-                  <div className="flex gap-3 mt-2 text-xs">
-                    <span className="text-muted-foreground">{bpStats.count} readings</span>
-                  </div>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   )
 }
