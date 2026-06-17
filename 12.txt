@@ -1,0 +1,245 @@
+import 'package:flutter/material.dart';
+
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
+  int calculateAge(DateTime birthDate) {
+    final today = DateTime.now();
+    int age = today.year - birthDate.year;
+    if (today.month < birthDate.month ||
+        (today.month == birthDate.month && today.day < birthDate.day)) {
+      age--;
+    }
+    return age;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final birthDate = DateTime(1979, 7, 23);
+    final age = calculateAge(birthDate);
+
+    return Scaffold(
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // HEADER
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Left: Name + Age + DOB
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Mikail KOCAK",
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        "Age: $age",
+                        style: const TextStyle(
+                          fontSize: 18,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      const Text(
+                        "Date of birth: July 23, 1979",
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.black54,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  // Right: Profile photo
+                  CircleAvatar(
+                    radius: 40,
+                    backgroundColor: Colors.black12,
+                    backgroundImage: const AssetImage('assets/profile.jpg'),
+                    onBackgroundImageError: (_, __) {},
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 30),
+
+              const Text(
+                "Health Dashboard",
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black,
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _navCard(
+                    context,
+                    title: "Glucose",
+                    subtitle: "Upload daily report",
+                    route: "/glucose",
+                  ),
+                  _navCard(
+                    context,
+                    title: "Lab Results",
+                    subtitle: "Add and review labs",
+                    route: "/labs",
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 16),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _navCard(
+                    context,
+                    title: "AI Doctor",
+                    subtitle: "Ask health questions",
+                    route: "/ai-doctor",
+                  ),
+                  _navCard(
+                    context,
+                    title: "Medications",
+                    subtitle: "Day & Night schedule",
+                    route: "/medications",
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 16),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _navCard(
+                    context,
+                    title: "News",
+                    subtitle: "Sugar & longevity",
+                    route: "/news",
+                  ),
+                  _navCard(
+                    context,
+                    title: "Charts",
+                    subtitle: "View all trends",
+                    route: "/charts",
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 30),
+
+              const Text(
+                "Latest Health News",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black,
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              const Expanded(
+                child: ListView(
+                  children: [
+                    _NewsTile(
+                      title: "New insights on glucose stability and fasting",
+                    ),
+                    _NewsTile(
+                      title: "Longevity: metabolic health and lifestyle",
+                    ),
+                    _NewsTile(
+                      title: "Important update on continuous sugar monitoring",
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _navCard(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required String route,
+  }) {
+    return GestureDetector(
+      onTap: () => Navigator.pushNamed(context, route),
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.42,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: Colors.black12),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: Colors.black,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              subtitle,
+              style: const TextStyle(
+                fontSize: 13,
+                color: Colors.black54,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _NewsTile extends StatelessWidget {
+  final String title;
+
+  const _NewsTile({required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.black12),
+      ),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 15,
+          color: Colors.black,
+        ),
+      ),
+    );
+  }
+}

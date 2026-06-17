@@ -1,0 +1,15 @@
+class Medication {
+  final String name;
+  final String dose;
+  final String timeOfDay; // "Day" or "Night"
+  final String frequency;
+  final String? notes;
+
+  Medication({
+    required this.name,
+    required this.dose,
+    required this.timeOfDay,
+    required this.frequency,
+    this.notes,
+  });
+}

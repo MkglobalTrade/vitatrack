@@ -1,0 +1,103 @@
+import 'package:flutter/material.dart';
+
+class AiDoctorScreen extends StatefulWidget {
+  const AiDoctorScreen({super.key});
+
+  @override
+  State<AiDoctorScreen> createState() => _AiDoctorScreenState();
+}
+
+class _AiDoctorScreenState extends State<AiDoctorScreen> {
+  final TextEditingController _controller = TextEditingController();
+  final List<Map<String, String>> _messages = [
+    {
+      "role": "ai",
+      "text":
+          "Hello Mikail, I am your AI Doctor assistant. I do not replace a real doctor, but I can help you understand your data and prepare questions for your physician."
+    },
+  ];
+
+  void _sendMessage() {
+    final text = _controller.text.trim();
+    if (text.isEmpty) return;
+
+    setState(() {
+      _messages.add({"role": "user", "text": text});
+      _controller.clear();
+      _messages.add({
+        "role": "ai",
+        "text":
+            "Thank you for your question. Based on general medical knowledge, here is some context... (Later we can connect a real AI API)."
+      });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("AI Doctor"),
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: _messages.length,
+              itemBuilder: (context, index) {
+                final msg = _messages[index];
+                final isUser = msg["role"] == "user";
+                return Align(
+                  alignment:
+                      isUser ? Alignment.centerRight : Alignment.centerLeft,
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(vertical: 6),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: isUser ? Colors.black : Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      border: isUser
+                          ? null
+                          : Border.all(color: Colors.black12),
+                    ),
+                    child: Text(
+                      msg["text"]!,
+                      style: TextStyle(
+                        color: isUser ? Colors.white : Colors.black,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          const Divider(height: 1),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _controller,
+                    style: const TextStyle(color: Colors.black),
+                    decoration: const InputDecoration(
+                      hintText: "Ask a question about your health...",
+                      hintStyle: TextStyle(color: Colors.black54),
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  onPressed: _sendMessage,
+                  icon: const Icon(Icons.send, color: Colors.black),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

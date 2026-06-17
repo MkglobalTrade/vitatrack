@@ -1,0 +1,36 @@
+import 'package:flutter/material.dart';
+import 'theme/app_theme.dart';
+import 'screens/home_screen.dart';
+import 'screens/glucose_screen.dart';
+import 'screens/labs_screen.dart';
+import 'screens/ai_doctor_screen.dart';
+import 'screens/medications_screen.dart';
+import 'screens/news_screen.dart';
+import 'screens/charts_screen.dart';
+
+void main() {
+  runApp(const HealthyTrackerApp());
+}
+
+class HealthyTrackerApp extends StatelessWidget {
+  const HealthyTrackerApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Healthy Tracker',
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.lightTheme,
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const HomeScreen(),
+        '/glucose': (context) => const GlucoseScreen(),
+        '/labs': (context) => const LabsScreen(),
+        '/ai-doctor': (context) => const AiDoctorScreen(),
+        '/medications': (context) => const MedicationsScreen(),
+        '/news': (context) => const NewsScreen(),
+        '/charts': (context) => const ChartsScreen(),
+      },
+    );
+  }
+}

@@ -1,0 +1,48 @@
+import 'dart:convert';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import '../models/lab_result.dart';
+
+class LabsStorage {
+  static Future<String> _getFilePath() async {
+    final dir = await getApplicationDocumentsDirectory();
+    return "${dir.path}/labs_data.json";
+  }
+
+  static Future<List<LabResult>> loadLabs() async {
+    try {
+      final filePath = await _getFilePath();
+      final file = File(filePath);
+      if (!file.existsSync()) return [];
+      final jsonData = jsonDecode(await file.readAsString());
+      return (jsonData as List).map((e) {
+        return LabResult(
+          date: DateTime.parse(e["date"]),
+          title: e["title"],
+          category: LabCategory.values.firstWhere(
+            (c) => c.toString() == e["category"],
+          ),
+          filePath: e["filePath"],
+          notes: e["notes"],
+        );
+      }).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  static Future<void> saveLabs(List<LabResult> labs) async {
+    final filePath = await _getFilePath();
+    final file = File(filePath);
+    final jsonData = labs.map((e) {
+      return {
+        "date": e.date.toIso8601String(),
+        "title": e.title,
+        "category": e.category.toString(),
+        "filePath": e.filePath,
+        "notes": e.notes,
+      };
+    }).toList();
+    await file.writeAsString(jsonEncode(jsonData));
+  }
+}

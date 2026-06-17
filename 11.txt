@@ -1,0 +1,46 @@
+import 'dart:convert';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import '../models/medication.dart';
+
+class MedicationsStorage {
+  static Future<String> _getFilePath() async {
+    final dir = await getApplicationDocumentsDirectory();
+    return "${dir.path}/medications_data.json";
+  }
+
+  static Future<List<Medication>> loadMeds() async {
+    try {
+      final filePath = await _getFilePath();
+      final file = File(filePath);
+      if (!file.existsSync()) return [];
+      final jsonData = jsonDecode(await file.readAsString());
+      return (jsonData as List).map((e) {
+        return Medication(
+          name: e["name"],
+          dose: e["dose"],
+          timeOfDay: e["timeOfDay"],
+          frequency: e["frequency"],
+          notes: e["notes"],
+        );
+      }).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  static Future<void> saveMeds(List<Medication> meds) async {
+    final filePath = await _getFilePath();
+    final file = File(filePath);
+    final jsonData = meds.map((e) {
+      return {
+        "name": e.name,
+        "dose": e.dose,
+        "timeOfDay": e.timeOfDay,
+        "frequency": e.frequency,
+        "notes": e.notes,
+      };
+    }).toList();
+    await file.writeAsString(jsonEncode(jsonData));
+  }
+}

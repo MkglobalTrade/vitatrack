@@ -1,0 +1,210 @@
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/material.dart';
+import '../models/lab_result.dart';
+import '../services/labs_storage.dart';
+
+class LabsScreen extends StatefulWidget {
+  const LabsScreen({super.key});
+
+  @override
+  State<LabsScreen> createState() => _LabsScreenState();
+}
+
+class _LabsScreenState extends State<LabsScreen> {
+  List<LabResult> labs = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLabs();
+  }
+
+  Future<void> _loadLabs() async {
+    final data = await LabsStorage.loadLabs();
+    setState(() => labs = data);
+  }
+
+  Color _categoryColor(LabCategory category) {
+    switch (category) {
+      case LabCategory.green:
+        return Colors.green;
+      case LabCategory.yellow:
+        return Colors.orange;
+      case LabCategory.red:
+        return Colors.red;
+    }
+  }
+
+  Future<void> _addLab() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ["jpg", "jpeg", "png", "pdf"],
+    );
+    if (result == null) return;
+
+    final filePath = result.files.single.path!;
+    LabCategory selectedCategory = LabCategory.green;
+    final titleController = TextEditingController();
+
+    await showDialog(
+      context: context,
+      builder: (_) {
+        return AlertDialog(
+          title: const Text("New Lab Result"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: titleController,
+                decoration: const InputDecoration(
+                  labelText: "Title (e.g. A1C, Cholesterol)",
+                ),
+              ),
+              const SizedBox(height: 12),
+              DropdownButton<LabCategory>(
+                value: selectedCategory,
+                items: LabCategory.values.map((c) {
+                  return DropdownMenuItem(
+                    value: c,
+                    child: Text(c.name.toUpperCase()),
+                  );
+                }).toList(),
+                onChanged: (v) {
+                  if (v != null) {
+                    setState(() => selectedCategory = v);
+                  }
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text("Save"),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (titleController.text.trim().isEmpty) return;
+
+    final newLab = LabResult(
+      date: DateTime.now(),
+      title: titleController.text.trim(),
+      category: selectedCategory,
+      filePath: filePath,
+      notes: null,
+    );
+
+    setState(() => labs.add(newLab));
+    await LabsStorage.saveLabs(labs);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    labs.sort((a, b) => b.date.compareTo(a.date));
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Lab Results"),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Upload and categorize your lab results.",
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _addLab,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
+                foregroundColor: Colors.white,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text("Add new lab result"),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              "History by importance",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.black,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Expanded(
+              child: ListView.builder(
+                itemCount: labs.length,
+                itemBuilder: (context, index) {
+                  final lab = labs[index];
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: Colors.black12),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              lab.title,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                color: Colors.black,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              lab.date.toString().substring(0, 16),
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: Colors.black54,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Text(
+                          lab.category.name.toUpperCase(),
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: _categoryColor(lab.category),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

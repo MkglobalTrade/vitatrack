@@ -1,0 +1,26 @@
+healthy_tracker_app/
+  pubspec.yaml
+  lib/
+    main.dart
+    theme/
+      app_theme.dart
+    models/
+      glucose_entry.dart
+      lab_result.dart
+      medication.dart
+      news_item.dart
+    services/
+      glucose_storage.dart
+      labs_storage.dart
+      medications_storage.dart
+    screens/
+      home_screen.dart
+      glucose_screen.dart
+      glucose_detail_screen.dart
+      labs_screen.dart
+      ai_doctor_screen.dart
+      medications_screen.dart
+      news_screen.dart
+      charts_screen.dart
+  assets/
+    profile.jpg

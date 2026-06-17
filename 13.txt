@@ -1,0 +1,175 @@
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
+import '../models/glucose_entry.dart';
+import '../services/glucose_storage.dart';
+import 'glucose_detail_screen.dart';
+
+class GlucoseScreen extends StatefulWidget {
+  const GlucoseScreen({super.key});
+
+  @override
+  State<GlucoseScreen> createState() => _GlucoseScreenState();
+}
+
+class _GlucoseScreenState extends State<GlucoseScreen> {
+  List<GlucoseEntry> entries = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadEntries();
+  }
+
+  Future<void> _loadEntries() async {
+    final data = await GlucoseStorage.loadEntries();
+    setState(() => entries = data);
+  }
+
+  Future<void> _uploadFile() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ["jpg", "jpeg", "png", "pdf"],
+    );
+    if (result == null) return;
+
+    final filePath = result.files.single.path!;
+    final newEntry = GlucoseEntry(
+      date: DateTime.now(),
+      filePath: filePath,
+      note: null,
+    );
+
+    setState(() => entries.add(newEntry));
+    await GlucoseStorage.saveEntries(entries);
+  }
+
+  List<FlSpot> _generateMockChart() {
+    return List.generate(entries.length, (i) {
+      return FlSpot(i.toDouble(), (90 + i * 3).toDouble());
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Glucose Reports"),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Upload your daily glucose report (photo or PDF).",
+              style: TextStyle(fontSize: 14, color: Colors.black87),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _uploadFile,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text("Upload new report"),
+            ),
+            const SizedBox(height: 30),
+            const Text(
+              "Glucose Trend",
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: Colors.black,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              height: 180,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.black12),
+              ),
+              child: LineChart(
+                LineChartData(
+                  borderData: FlBorderData(show: false),
+                  lineBarsData: [
+                    LineChartBarData(
+                      spots: _generateMockChart(),
+                      isCurved: true,
+                      color: Colors.black,
+                      barWidth: 3,
+                      dotData: FlDotData(show: false),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 30),
+            const Text(
+              "History",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.black,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Expanded(
+              child: ListView.builder(
+                itemCount: entries.length,
+                itemBuilder: (context, index) {
+                  final e = entries[index];
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => GlucoseDetailScreen(entry: e),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 10),
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: Colors.black12),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            e.date.toString().substring(0, 16),
+                            style: const TextStyle(
+                              fontSize: 15,
+                              color: Colors.black,
+                            ),
+                          ),
+                          Icon(
+                            e.filePath.endsWith(".pdf")
+                                ? Icons.picture_as_pdf
+                                : Icons.image,
+                            color: Colors.black54,
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

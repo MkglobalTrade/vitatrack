@@ -1,0 +1,13 @@
+class NewsItem {
+  final String title;
+  final String source;
+  final DateTime date;
+  final List<String> tags;
+
+  NewsItem({
+    required this.title,
+    required this.source,
+    required this.date,
+    required this.tags,
+  });
+}

@@ -1,0 +1,42 @@
+import 'dart:convert';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import '../models/glucose_entry.dart';
+
+class GlucoseStorage {
+  static Future<String> _getFilePath() async {
+    final dir = await getApplicationDocumentsDirectory();
+    return "${dir.path}/glucose_data.json";
+  }
+
+  static Future<List<GlucoseEntry>> loadEntries() async {
+    try {
+      final filePath = await _getFilePath();
+      final file = File(filePath);
+      if (!file.existsSync()) return [];
+      final jsonData = jsonDecode(await file.readAsString());
+      return (jsonData as List).map((e) {
+        return GlucoseEntry(
+          date: DateTime.parse(e["date"]),
+          filePath: e["filePath"],
+          note: e["note"],
+        );
+      }).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  static Future<void> saveEntries(List<GlucoseEntry> entries) async {
+    final filePath = await _getFilePath();
+    final file = File(filePath);
+    final jsonData = entries.map((e) {
+      return {
+        "date": e.date.toIso8601String(),
+        "filePath": e.filePath,
+        "note": e.note,
+      };
+    }).toList();
+    await file.writeAsString(jsonEncode(jsonData));
+  }
+}

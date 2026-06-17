@@ -1,0 +1,43 @@
+import 'dart:io';
+import 'package:flutter/material.dart';
+import '../models/glucose_entry.dart';
+
+class GlucoseDetailScreen extends StatelessWidget {
+  final GlucoseEntry entry;
+
+  const GlucoseDetailScreen({super.key, required this.entry});
+
+  @override
+  Widget build(BuildContext context) {
+    final isPdf = entry.filePath.endsWith(".pdf");
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Report Detail"),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Date: ${entry.date.toString().substring(0, 16)}",
+              style: const TextStyle(fontSize: 16, color: Colors.black),
+            ),
+            const SizedBox(height: 20),
+            Expanded(
+              child: isPdf
+                  ? const Center(
+                      child: Text(
+                        "PDF preview coming soon",
+                        style: TextStyle(color: Colors.black54),
+                      ),
+                    )
+                  : Image.file(File(entry.filePath)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

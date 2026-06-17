@@ -1,0 +1,11 @@
+class GlucoseEntry {
+  final DateTime date;
+  final String filePath;
+  final String? note;
+
+  GlucoseEntry({
+    required this.date,
+    required this.filePath,
+    this.note,
+  });
+}

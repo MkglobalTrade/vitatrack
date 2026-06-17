@@ -1,0 +1,17 @@
+enum LabCategory { green, yellow, red }
+
+class LabResult {
+  final DateTime date;
+  final String title;
+  final LabCategory category;
+  final String filePath;
+  final String? notes;
+
+  LabResult({
+    required this.date,
+    required this.title,
+    required this.category,
+    required this.filePath,
+    this.notes,
+  });
+}

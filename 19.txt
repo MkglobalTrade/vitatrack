@@ -1,0 +1,69 @@
+import 'package:flutter/material.dart';
+
+class ChartsScreen extends StatelessWidget {
+  const ChartsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Health Charts"),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: ListView(
+          children: const [
+            _ChartPlaceholder(title: "Glucose Levels"),
+            SizedBox(height: 16),
+            _ChartPlaceholder(title: "Blood Pressure"),
+            SizedBox(height: 16),
+            _ChartPlaceholder(title: "Weight"),
+            SizedBox(height: 16),
+            _ChartPlaceholder(title: "Other metrics"),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ChartPlaceholder extends StatelessWidget {
+  final String title;
+
+  const _ChartPlaceholder({required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: Colors.black,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          height: 160,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.black12),
+          ),
+          child: const Center(
+            child: Text(
+              "Chart will be displayed here",
+              style: TextStyle(
+                color: Colors.black54,
+                fontSize: 13,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}

@@ -1,0 +1,210 @@
+import 'package:flutter/material.dart';
+import '../models/medication.dart';
+import '../services/medications_storage.dart';
+
+class MedicationsScreen extends StatefulWidget {
+  const MedicationsScreen({super.key});
+
+  @override
+  State<MedicationsScreen> createState() => _MedicationsScreenState();
+}
+
+class _MedicationsScreenState extends State<MedicationsScreen> {
+  List<Medication> meds = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMeds();
+  }
+
+  Future<void> _loadMeds() async {
+    final data = await MedicationsStorage.loadMeds();
+    setState(() => meds = data);
+  }
+
+  Future<void> _addMed() async {
+    final nameController = TextEditingController();
+    final doseController = TextEditingController();
+    final freqController = TextEditingController();
+    String timeOfDay = "Day";
+
+    await showDialog(
+      context: context,
+      builder: (_) {
+        return AlertDialog(
+          title: const Text("New Medication / Vitamin"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: "Name"),
+              ),
+              TextField(
+                controller: doseController,
+                decoration: const InputDecoration(labelText: "Dose"),
+              ),
+              TextField(
+                controller: freqController,
+                decoration: const InputDecoration(labelText: "Frequency"),
+              ),
+              const SizedBox(height: 12),
+              DropdownButton<String>(
+                value: timeOfDay,
+                items: const [
+                  DropdownMenuItem(value: "Day", child: Text("Day")),
+                  DropdownMenuItem(value: "Night", child: Text("Night")),
+                ],
+                onChanged: (v) {
+                  if (v != null) {
+                    setState(() => timeOfDay = v);
+                  }
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Save"),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (nameController.text.trim().isEmpty) return;
+
+    final newMed = Medication(
+      name: nameController.text.trim(),
+      dose: doseController.text.trim(),
+      timeOfDay: timeOfDay,
+      frequency: freqController.text.trim(),
+      notes: null,
+    );
+
+    setState(() => meds.add(newMed));
+    await MedicationsStorage.saveMeds(meds);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final dayMeds = meds.where((m) => m.timeOfDay == "Day").toList();
+    final nightMeds = meds.where((m) => m.timeOfDay == "Night").toList();
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Medications & Vitamins"),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Day & Night schedule",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.black,
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _addMed,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
+                foregroundColor: Colors.white,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text("Add medication / vitamin"),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              "Day",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.black,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Expanded(
+              child: ListView(
+                children: [
+                  ...dayMeds.map(_buildMedTile),
+                  const SizedBox(height: 16),
+                  const Text(
+                    "Night",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ...nightMeds.map(_buildMedTile),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMedTile(Medication med) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.black12),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                med.name,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                "${med.dose} • ${med.frequency}",
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: Colors.black54,
+                ),
+              ),
+            ],
+          ),
+          Text(
+            med.timeOfDay,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

@@ -1,0 +1,82 @@
+import 'package:flutter/material.dart';
+
+class NewsScreen extends StatelessWidget {
+  const NewsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final mockNews = [
+      {
+        "title": "New study on glucose variability and long-term health",
+        "source": "Medical Journal",
+        "date": "2026-06-10",
+        "tags": "Sugar, Longevity"
+      },
+      {
+        "title": "Intermittent fasting and insulin sensitivity",
+        "source": "Health Research",
+        "date": "2026-05-28",
+        "tags": "Sugar, Metabolism"
+      },
+      {
+        "title": "Important update on continuous glucose monitoring",
+        "source": "Diabetes Association",
+        "date": "2026-05-15",
+        "tags": "Important, Sugar"
+      },
+    ];
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Health News"),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: ListView.builder(
+          itemCount: mockNews.length,
+          itemBuilder: (context, index) {
+            final item = mockNews[index];
+            return Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: Colors.black12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item["title"]!,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    "${item["source"]} • ${item["date"]}",
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: Colors.black54,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    item["tags"]!,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
