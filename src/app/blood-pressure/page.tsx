@@ -15,7 +15,6 @@ import { TIME_OF_DAY, getBPStatus } from '@/lib/health-categories'
 import { BPChart } from '@/components/HealthChart'
 import { StatsCard } from '@/components/StatsCard'
 import { useToast } from '@/components/toast-provider'
-import { cn } from '@/lib/utils'
 
 export default function BloodPressurePage() {
   const { bpReadings, addBPReading, deleteBPReading, getBPStats } = useHealthData()

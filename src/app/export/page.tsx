@@ -6,7 +6,6 @@ import { FileDown, Download, FileText, Droplets, HeartPulse, Pill, Check, Loader
 import { useHealthData } from '@/hooks/useHealthData'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
 import { getSugarStatus, getBPStatus, getCategoryById } from '@/lib/health-categories'
 import { useToast } from '@/components/toast-provider'
 
@@ -41,7 +40,7 @@ export default function ExportPage() {
       const addSection = (title: string, color: [number,number,number]) => {
         if (y > 260) { doc.addPage(); y = 20; }
         doc.setFontSize(14)
-        doc.setTextColor(...color)
+        doc.setTextColor(color[0], color[1], color[2])
         doc.text(title, 20, y)
         y += 8
         doc.setFontSize(10)

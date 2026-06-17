@@ -1,10 +1,10 @@
 'use client'
 
 import { useMemo } from 'react'
-import { format, subDays } from 'date-fns'
+import { format } from 'date-fns'
 import {
-  Activity, Droplets, HeartPulse, Pill, FileText,
-  TrendingUp, TrendingDown, ArrowRight, Sparkles, Plus, Upload,
+  Droplets, HeartPulse, Pill, FileText,
+  ArrowRight, Sparkles, Plus, Upload,
 } from 'lucide-react'
 import { useHealthData } from '@/hooks/useHealthData'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -14,7 +14,7 @@ import { StatsCard } from '@/components/StatsCard'
 import { SugarChart, BPChart } from '@/components/HealthChart'
 import { QuickActions } from '@/components/QuickActions'
 import { PersonalBanner } from '@/components/PersonalBanner'
-import { getSugarStatus, getBPStatus } from '@/lib/health-categories'
+import { getSugarStatus, getBPStatus, getCategoryById } from '@/lib/health-categories'
 import Link from 'next/link'
 
 export default function HomePage() {
@@ -22,14 +22,12 @@ export default function HomePage() {
     sugarReadings,
     bpReadings,
     labResults,
-    medications,
     getSugarStats,
     getBPStats,
     getTodayMedications,
   } = useHealthData()
 
   const sugarStats = getSugarStats(7)
-  const bpStats = getBPStats(7)
   const todayMeds = getTodayMedications()
   const latestSugar = sugarReadings[0]
   const latestBP = bpReadings[0]
@@ -111,7 +109,7 @@ export default function HomePage() {
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center gap-2">
               <Pill className="w-5 h-5 text-purple-500" />
-              Today's Medications
+              Today&apos;s Medications
             </CardTitle>
           </CardHeader>
           <CardContent>

@@ -8,9 +8,6 @@ import { BottomNav } from '@/components/BottomNav'
 export const metadata: Metadata = {
   title: 'VitaTrack — Your Personal Health Companion',
   description: 'Track glucose, blood pressure, medications, lab results, and get AI-powered health insights.',
-  icons: {
-    icon: '/favicon.ico',
-  },
 }
 
 export default function RootLayout({

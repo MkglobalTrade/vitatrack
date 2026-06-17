@@ -10,7 +10,7 @@ export default function NotFound() {
       </div>
       <h1 className="text-4xl font-bold tracking-tight mb-2">404</h1>
       <p className="text-lg text-muted-foreground mb-6">
-        This page doesn't exist in your health records.
+        This page does not exist in your health records.
       </p>
       <Link href="/">
         <Button className="gap-2">
