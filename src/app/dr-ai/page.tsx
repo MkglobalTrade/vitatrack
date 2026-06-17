@@ -126,8 +126,7 @@ Total readings: ${sugarReadings.length} glucose, ${bpReadings.length} BP`
             <div className={cn('max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed',
               msg.role === 'user' ? 'bg-primary text-white rounded-br-md' : 'bg-muted/80 rounded-bl-md border border-border')}>
               <div className="prose prose-sm max-w-none dark:prose-invert">
-                {msg.content.split('
-').map((line, i) => {
+                {msg.content.split('\n').map((line, i) => {
                   if (line.startsWith('## ')) return <h2 key={i} className="text-base font-bold mt-2 mb-1">{line.replace('## ', '')}</h2>
                   if (line.startsWith('**') && line.endsWith('**')) return <p key={i} className="font-bold mt-2">{line.replace(/\*\*/g, '')}</p>
                   if (line.startsWith('• ')) return <li key={i} className="ml-4">{line.replace('• ', '')}</li>
