@@ -1,6 +1,6 @@
 {
   "name": "vitatrack",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -12,7 +12,7 @@
     "db:studio": "prisma studio"
   },
   "dependencies": {
-    "next": "14.2.5",
+    "next": "14.2.35",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "prisma": "^5.15.0",
@@ -30,14 +30,14 @@
     "html2canvas": "^1.4.1",
     "openai": "^4.52.0",
     "date-fns": "^3.6.0",
-    "uuid": "^9.0.1",
-    "@types/uuid": "^9.0.8",
+    "uuid": "^11.0.0",
+    "@types/uuid": "^10.0.0",
     "clsx": "^2.1.1",
     "tailwind-merge": "^2.3.0",
     "class-variance-authority": "^0.7.0"
   },
   "devDependencies": {
     "eslint": "^8.57.0",
-    "eslint-config-next": "14.2.5"
+    "eslint-config-next": "14.2.35"
   }
 }
