@@ -176,9 +176,11 @@ export default function Home() {
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [news, setNews] = useState<NewsArticle[]>([]);
   const [selectedNews, setSelectedNews] = useState<NewsArticle | null>(null);
+  const [isClient, setIsClient] = useState(false);
 
   // Initialize state from local storage securely inside useEffect to avoid hydration bugs in Next.js
   useEffect(() => {
+    setIsClient(true);
     setGlucose(JSON.parse(localStorage.getItem('ht_glucose') || JSON.stringify(INITIAL_GLUCOSE)));
     setBp(JSON.parse(localStorage.getItem('ht_bp') || JSON.stringify(INITIAL_BP)));
     setMedications(JSON.parse(localStorage.getItem('ht_medications') || JSON.stringify(INITIAL_MEDICATIONS)));
@@ -246,6 +248,18 @@ export default function Home() {
       setNews(NEWS_ARTICLES);
     }
   };
+
+  // Gracefully render loading state on server-side to prevent Next.js hydration mismatch
+  if (!isClient) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center text-white">
+        <div className="text-center space-y-2">
+          <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="text-sm font-semibold tracking-wider text-slate-300">LOADING HEALTY TRACKER...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-slate-50">
@@ -584,7 +598,7 @@ function DashboardView({ glucose, bp, medications, adherence, setAdherence, getG
 
           <div className="mt-4">
             <div className="flex justify-between items-center text-xs text-slate-500 mb-1.5 font-medium">
-              <span>Today's Completion</span>
+              <span>Today&apos;s Completion</span>
               <span className="font-bold text-indigo-600">{compliancePct}%</span>
             </div>
             <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
@@ -667,7 +681,7 @@ function DashboardView({ glucose, bp, medications, adherence, setAdherence, getG
         {/* MED CHECKLIST */}
         <div className="lg:col-span-5 space-y-6">
           <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm">
-            <h4 className="text-base font-bold text-slate-900 mb-4">Today's Quick Med Intake</h4>
+            <h4 className="text-base font-bold text-slate-900 mb-4">Today&apos;s Quick Med Intake</h4>
             <div className="space-y-4">
               <div>
                 <span className="text-[10px] uppercase font-bold text-amber-500 block mb-1.5">☀️ Morning Day Routine</span>
@@ -805,7 +819,7 @@ function UploadView({ glucose, setGlucose, bp, setBp, documents, setDocuments }:
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [isUploading, progress]);
+  }, [isUploading, progress, documents, glucose, setDocuments, setGlucose]);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -1150,7 +1164,7 @@ function DataExportView({ glucose, bp, medications, handleClearAllData }: Export
           <h3 className="text-base font-bold text-slate-900">Health Record Report</h3>
           <span className="text-xs text-slate-400">DOB: 23-July-1979 • Mikail KOCAK</span>
         </div>
-        <button onClick={() => window.print()} className="px-3 py-2 bg-indigo-600 text-white font-bold text-xs rounded-xl hover:bg-indigo-700">
+        <button onClick={() => { if (typeof window !== 'undefined') window.print(); }} className="px-3 py-2 bg-indigo-600 text-white font-bold text-xs rounded-xl hover:bg-indigo-700">
           Print or Save PDF
         </button>
       </div>
