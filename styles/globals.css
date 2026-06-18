@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-800 antialiased;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+}
+
+/* Custom prints for PDF format keeper */
+@media print {
+  body {
+    background-color: white;
+  }
+  aside, nav {
+    display: none !important;
+  }
+  main {
+    padding: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  #print-area {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+}
