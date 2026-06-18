@@ -1,0 +1,84 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                    String                 @id @default(uuid())
+  email                 String                 @unique
+  name                  String                 @default("Mikail KOCAK")
+  dob                   DateTime               @default("1979-07-23T00:00:00Z")
+  profileImage          String?                @default("/mikail_kocak.png")
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  glucoseReadings       GlucoseReading[]
+  bpReadings            BloodPressureReading[]
+  medications           Medication[]
+  uploadedDocuments     UploadedDocument[]
+  chatMessages          ChatMessage[]
+}
+
+model GlucoseReading {
+  id           String   @id @default(uuid())
+  value        Int      // mg/dL
+  timeOfDay    String   // "Morning", "Afternoon", "Evening", "Night"
+  mealContext  String   // "Fasting", "Before Meal", "After Meal", "General"
+  notes        String?
+  date         DateTime @default(now())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model BloodPressureReading {
+  id        String   @id @default(uuid())
+  systolic  Int      // mmHg
+  diastolic Int      // mmHg
+  pulse     Int      // bpm
+  timeOfDay String   // "Morning", "Evening"
+  notes     String?
+  date      DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Medication {
+  id          String   @id @default(uuid())
+  name        String
+  dosage      String
+  morning     Boolean  @default(true)
+  evening     Boolean  @default(true)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UploadedDocument {
+  id         String   @id @default(uuid())
+  name       String
+  fileType   String   // "application/pdf", "image/png", etc.
+  category   String   // "Stelo CGM Screenshot", "Lipid Panel", "Thyroid Panel", "General Blood Work"
+  size       String   // e.g., "2.1 MB"
+  status     String   @default("Parsed Successfully")
+  extracted  String   // Extracted parameters JSON or text summaries
+  createdAt  DateTime @default(now())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ChatMessage {
+  id        String   @id @default(uuid())
+  sender    String   // "user" or "ai"
+  text      String   @db.Text
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
