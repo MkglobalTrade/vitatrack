@@ -1,13 +1,1974 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Healthy Tracker - Mikail KOCAK</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-  </head>
-  <body class="bg-slate-50 text-slate-800 antialiased">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React & ReactDOM CDN -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <!-- Babel CDN for JSX compilation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f8fafc;
+        }
+        /* Custom scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased">
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+
+    <!-- React Application Code -->
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+
+        // Custom direct SVG Icons for speed and bulletproof loading without external icon assets
+        const Icons = {
+            Dashboard: () => (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+            ),
+            Upload: () => (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+            ),
+            Pill: () => (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5c.7-1.3 2-2.3 3.5-2.7l4.5-1.2c2.1-.5 4.3.7 4.8 2.8.5 2.1-.7 4.3-2.8 4.8l-4.5 1.2c-1.5.4-3 .1-4.2-.7L4.5 10.5z" /><path strokeLinecap="round" strokeLinejoin="round" d="M8.5 7.5l7 7" /></svg>
+            ),
+            Stethoscope: () => (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M8 14v3a4 4 0 008 0v-3M3 11V9a4 4 0 018 0v2m0 0a4 4 0 008 0V9a4 4 0 00-8 0v2M4 14h16m-2-3a3 3 0 11-6 0M9 21h6" /></svg>
+            ),
+            News: () => (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6m-6 4h4" /></svg>
+            ),
+            Database: () => (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 7v10c0 2.21 3.58 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.58 4 8 4s8-1.79 8-4M4 7c0-2.21 3.58-4 8-4s8 1.79 8 4m0 5c0 2.21-3.58 4-8 4s-8-1.79-8-4" /></svg>
+            ),
+            Droplet: ({ className = "w-5 h-5" }) => (
+                <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z" /></svg>
+            ),
+            Heart: ({ className = "w-5 h-5" }) => (
+                <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+            ),
+            Check: ({ className = "w-5 h-5" }) => (
+                <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+            ),
+            Clock: ({ className = "w-5 h-5" }) => (
+                <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            ),
+            Trash: ({ className = "w-5 h-5" }) => (
+                <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+            ),
+            Plus: ({ className = "w-5 h-5" }) => (
+                <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+            ),
+            Sparkles: ({ className = "w-5 h-5" }) => (
+                <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
+            ),
+            Info: ({ className = "w-5 h-5" }) => (
+                <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            ),
+            Calendar: ({ className = "w-5 h-5" }) => (
+                <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 3V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+            ),
+            Doc: ({ className = "w-5 h-5" }) => (
+                <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+            ),
+            FilePdf: ({ className = "w-5 h-5" }) => (
+                <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+            ),
+            BookOpen: ({ className = "w-5 h-5" }) => (
+                <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+            ),
+            ArrowRight: ({ className = "w-5 h-5" }) => (
+                <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+            ),
+            User: ({ className = "w-5 h-5" }) => (
+                <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+            ),
+            Download: ({ className = "w-5 h-5" }) => (
+                <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+            )
+        };
+
+        // Static News Database
+        const NEWS_ARTICLES = [
+            {
+                id: 1,
+                title: "Metformin for Longevity: The TAME Trial & Cellular Rejuvenation",
+                category: "Longevity Science",
+                summary: "Can a 60-year-old diabetes medication delay aging? Researchers explain the cellular mechanisms of Metformin in mimicking caloric restriction and suppressing AMPK-induced aging pathways.",
+                date: "June 12, 2026",
+                source: "Longevity Medicine Review",
+                readTime: "6 min read",
+                content: "Metformin is historically a glucose-lowering drug. However, the upcoming Targeting Aging with Metformin (TAME) trial seeks to prove it delays chronic diseases. Its mechanism involves activating AMPK (AMP-activated protein kinase) and enhancing mitochondrial efficiency, thereby suppressing inflammation and systemic aging.",
+                bookmarked: false
+            },
+            {
+                id: 2,
+                title: "The Great CGM Revolution: Beyond Diabetes with Dexcom Stelo",
+                category: "Health Technology",
+                summary: "Dexcom's FDA-approved over-the-counter Stelo glucose monitor opens metabolic health tracking to everyone. How non-diabetics are using glucose trends to optimize energy, focus, and longevity.",
+                date: "June 14, 2026",
+                source: "Digital Health Insider",
+                readTime: "5 min read",
+                content: "Continuous Glucose Monitors (CGMs) like the Dexcom Stelo are transforming wellness. By tracking glucose in real-time, users can identify insulin spikes, optimize food sequencing (eating fiber/protein before carbs), and improve physical endurance without the need for a prescription.",
+                bookmarked: false
+            },
+            {
+                id: 3,
+                title: "Blood Pressure & Sodium Sensitivity Debate: New Guidelines",
+                category: "Cardio Health",
+                summary: "Is restricting salt beneficial for everyone? Emerging clinical debates show sodium sensitivity varies heavily by genetics, suggesting highly personalized hydration and potassium-to-sodium ratios instead.",
+                date: "May 28, 2026",
+                source: "American Heart Forum",
+                readTime: "8 min read",
+                content: "For decades, universal salt restriction was the primary defense against hypertension. Modern cardiovascular research suggests only 50% of hypertensive individuals are genuinely salt-sensitive. Balancing sodium with adequate dietary potassium (ideal ratio 1:2) is showing superior clinical outcomes for arterial elasticity.",
+                bookmarked: false
+            },
+            {
+                id: 4,
+                title: "Rapamycin vs. Metformin: Comparing the Giants of Anti-Aging",
+                category: "Longevity Science",
+                summary: "A head-to-head comparison of MTOR inhibition vs. AMPK activation. Longevity clinical trials are debating whether combination therapy yields exponential protective gains or increases side effects.",
+                date: "June 10, 2026",
+                source: "Geroscience Journal",
+                readTime: "7 min read",
+                content: "Rapamycin acts as a highly selective inhibitor of mTOR (mechanistic target of rapamycin), promoting autophagy and cellular cleanup. Metformin acts as an insulin sensitizer. Together, they represent a double-edged sword: Rapamycin suppresses growth signals while Metformin optimizes energy. Combining low doses shows highly protective synergy in murine studies, with human trials starting soon.",
+                bookmarked: true
+            }
+        ];
+
+        // Demo Initial State
+        const INITIAL_GLUCOSE = [
+            { id: 1, value: 98, timeOfDay: 'Morning', mealContext: 'Fasting', date: '2026-06-17', notes: 'Fasting sugar looking very stable.' },
+            { id: 2, value: 135, timeOfDay: 'Afternoon', mealContext: 'After Meal', date: '2026-06-16', notes: 'Post lunch. Had a small carb serving.' },
+            { id: 3, value: 104, timeOfDay: 'Evening', mealContext: 'Before Meal', date: '2026-06-16', notes: 'Before dinner. Walked 15 mins.' },
+            { id: 4, value: 92, timeOfDay: 'Morning', mealContext: 'Fasting', date: '2026-06-16', notes: 'Woke up feeling refreshed.' },
+            { id: 5, value: 112, timeOfDay: 'Evening', mealContext: 'After Meal', date: '2026-06-15', notes: '2h post light dinner.' },
+            { id: 6, value: 101, timeOfDay: 'Morning', mealContext: 'Fasting', date: '2026-06-15', notes: 'Steady sleep baseline.' }
+        ];
+
+        const INITIAL_BP = [
+            { id: 1, systolic: 118, diastolic: 79, pulse: 68, timeOfDay: 'Morning', date: '2026-06-17', notes: 'Optimal pressure, hydrated.' },
+            { id: 2, systolic: 121, diastolic: 81, pulse: 72, timeOfDay: 'Evening', date: '2026-06-16', notes: 'Slightly elevated post evening workout.' },
+            { id: 3, systolic: 116, diastolic: 78, pulse: 65, timeOfDay: 'Morning', date: '2026-06-16', notes: 'Felt very relaxed.' },
+            { id: 4, systolic: 124, diastolic: 82, pulse: 70, timeOfDay: 'Evening', date: '2026-06-15', notes: 'Slightly stressed after work.' },
+            { id: 5, systolic: 119, diastolic: 77, pulse: 66, timeOfDay: 'Morning', date: '2026-06-15', notes: 'Good sleep recovery.' }
+        ];
+
+        const INITIAL_MEDICATIONS = [
+            { id: 1, name: 'Metformin', dosage: '500mg', morning: true, evening: true, active: true },
+            { id: 2, name: 'Lisinopril', dosage: '10mg', morning: true, evening: false, active: true },
+            { id: 3, name: 'Atorvastatin', dosage: '20mg', morning: false, evening: true, active: true },
+            { id: 4, name: 'Omega-3 Fish Oil', dosage: '1000mg', morning: true, evening: true, active: true },
+            { id: 5, name: 'CoQ10', dosage: '100mg', morning: true, evening: false, active: true }
+        ];
+
+        // Adherence log tracking day/night intake
+        const INITIAL_ADHERENCE = {
+            '2026-06-17': { morning: [1, 2, 4, 5], evening: [] }, // Morning taken, evening pending
+            '2026-06-16': { morning: [1, 2, 4, 5], evening: [1, 3, 4] }, // Perfect compliance
+            '2026-06-15': { morning: [1, 2, 4], evening: [1, 3, 4] } // Missed CoQ10 in morning
+        };
+
+        const INITIAL_DOCS = [
+            { id: 1, name: 'Stelo_CGM_Weekly_Trend_2026-06-15.png', type: 'image/png', category: 'Stelo CGM Screenshot', size: '2.1 MB', date: '2026-06-15', status: 'Parsed Successfully', extracted: 'Avg Glucose: 104 mg/dL. Time-in-range: 96%.' },
+            { id: 2, name: 'Full_Lipid_Panel_QuestLabs.pdf', type: 'application/pdf', category: 'Lipid Panel', size: '1.4 MB', date: '2026-05-10', status: 'Parsed Successfully', extracted: 'Total Cholesterol: 195 mg/dL, HDL: 48, LDL: 121, Triglycerides: 130.' },
+            { id: 3, name: 'Thyroid_TSH_Screening.pdf', type: 'application/pdf', category: 'Thyroid Panel', size: '940 KB', date: '2026-04-12', status: 'Parsed Successfully', extracted: 'TSH: 1.85 mIU/L (Within Optimal Reference 0.45 - 4.5).' }
+        ];
+
+        const INITIAL_CHAT = [
+            { sender: 'ai', text: 'Hello Mikail! I am Dr. AI, your private, secure medical co-pilot. I have analyzed your health tracker profile: you are 46 years old (born July 23, 1979). I see your active daily medications (Metformin, Lisinopril, Atorvastatin, Omega-3, CoQ10), your latest blood pressure (118/79 mmHg), and your latest glucose readings via the Dexcom Stelo CGM (averaging 104 mg/dL).\n\nHow can I help you today? You can ask about your glucose trends, the interaction of your medications, or your latest Lipid/Thyroid lab results.' }
+        ];
+
+        // Main App Component
+        function App() {
+            const [activeTab, setActiveTab] = useState('dashboard');
+            const [glucose, setGlucose] = useState(() => JSON.parse(localStorage.getItem('ht_glucose')) || INITIAL_GLUCOSE);
+            const [bp, setBp] = useState(() => JSON.parse(localStorage.getItem('ht_bp')) || INITIAL_BP);
+            const [medications, setMedications] = useState(() => JSON.parse(localStorage.getItem('ht_medications')) || INITIAL_MEDICATIONS);
+            const [adherence, setAdherence] = useState(() => JSON.parse(localStorage.getItem('ht_adherence')) || INITIAL_ADHERENCE);
+            const [documents, setDocuments] = useState(() => JSON.parse(localStorage.getItem('ht_docs')) || INITIAL_DOCS);
+            const [chatHistory, setChatHistory] = useState(() => JSON.parse(localStorage.getItem('ht_chat')) || INITIAL_CHAT);
+            const [news, setNews] = useState(() => JSON.parse(localStorage.getItem('ht_news')) || NEWS_ARTICLES);
+            const [selectedNews, setSelectedNews] = useState(null);
+
+            // Synchronize with LocalStorage for offline-first compliance
+            useEffect(() => {
+                localStorage.setItem('ht_glucose', JSON.stringify(glucose));
+            }, [glucose]);
+
+            useEffect(() => {
+                localStorage.setItem('ht_bp', JSON.stringify(bp));
+            }, [bp]);
+
+            useEffect(() => {
+                localStorage.setItem('ht_medications', JSON.stringify(medications));
+            }, [medications]);
+
+            useEffect(() => {
+                localStorage.setItem('ht_adherence', JSON.stringify(adherence));
+            }, [adherence]);
+
+            useEffect(() => {
+                localStorage.setItem('ht_docs', JSON.stringify(documents));
+            }, [documents]);
+
+            useEffect(() => {
+                localStorage.setItem('ht_chat', JSON.stringify(chatHistory));
+            }, [chatHistory]);
+
+            useEffect(() => {
+                localStorage.setItem('ht_news', JSON.stringify(news));
+            }, [news]);
+
+            // Helper to get status colors
+            const getGlucoseStatus = (value) => {
+                if (value < 70) return { label: 'Low', color: 'text-red-600 bg-red-50 border-red-200', dot: 'bg-red-500' };
+                if (value <= 110) return { label: 'Optimal', color: 'text-emerald-600 bg-emerald-50 border-emerald-200', dot: 'bg-emerald-500' };
+                if (value <= 140) return { label: 'Pre-Meal Target', color: 'text-amber-600 bg-amber-50 border-amber-200', dot: 'bg-amber-500' };
+                return { label: 'High', color: 'text-red-600 bg-red-50 border-red-200', dot: 'bg-red-500' };
+            };
+
+            const getBPStatus = (sys, dia) => {
+                if (sys < 120 && dia < 80) return { label: 'Normal', color: 'text-emerald-600 bg-emerald-50 border-emerald-200', dot: 'bg-emerald-500' };
+                if (sys <= 129 && dia < 80) return { label: 'Elevated', color: 'text-amber-500 bg-amber-50/50 border-amber-200', dot: 'bg-amber-400' };
+                if (sys <= 139 || dia <= 89) return { label: 'Hypertension S1', color: 'text-amber-600 bg-amber-50 border-amber-200', dot: 'bg-amber-500' };
+                return { label: 'Hypertension S2', color: 'text-red-600 bg-red-50 border-red-200', dot: 'bg-red-500' };
+            };
+
+            const latestGlucose = glucose[0] || { value: '--', date: '', notes: '', mealContext: '', timeOfDay: '' };
+            const latestBP = bp[0] || { systolic: '--', diastolic: '--', pulse: '--', date: '', notes: '' };
+
+            const handleClearAllData = () => {
+                if (window.confirm("Are you sure you want to reset all data to default values?")) {
+                    localStorage.removeItem('ht_glucose');
+                    localStorage.removeItem('ht_bp');
+                    localStorage.removeItem('ht_medications');
+                    localStorage.removeItem('ht_adherence');
+                    localStorage.removeItem('ht_docs');
+                    localStorage.removeItem('ht_chat');
+                    localStorage.removeItem('ht_news');
+                    setGlucose(INITIAL_GLUCOSE);
+                    setBp(INITIAL_BP);
+                    setMedications(INITIAL_MEDICATIONS);
+                    setAdherence(INITIAL_ADHERENCE);
+                    setDocuments(INITIAL_DOCS);
+                    setChatHistory(INITIAL_CHAT);
+                    setNews(NEWS_ARTICLES);
+                }
+            };
+
+            return (
+                <div className="min-h-screen flex flex-col md:flex-row bg-slate-50">
+                    
+                    {/* SIDEBAR FOR DESKTOP */}
+                    <aside className="hidden md:flex flex-col w-64 bg-slate-900 text-slate-300 border-r border-slate-800">
+                        <div className="p-6 flex items-center space-x-3 border-b border-slate-800 bg-slate-950">
+                            <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg">
+                                <Icons.Sparkles className="w-6 h-6 text-indigo-200 animate-pulse" />
+                            </div>
+                            <div>
+                                <h1 className="text-lg font-bold text-white tracking-wide">Healty Tracker</h1>
+                                <span className="text-xs text-slate-400 font-medium uppercase tracking-widest">Workspace</span>
+                            </div>
+                        </div>
+
+                        <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto">
+                            <button onClick={() => { setActiveTab('dashboard'); setSelectedNews(null); }} className={`flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'dashboard' ? 'bg-indigo-600 text-white shadow-md' : 'hover:bg-slate-800 text-slate-400 hover:text-white'}`}>
+                                <Icons.Dashboard />
+                                <span>Dashboard</span>
+                            </button>
+                            <button onClick={() => { setActiveTab('upload'); setSelectedNews(null); }} className={`flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'upload' ? 'bg-indigo-600 text-white shadow-md' : 'hover:bg-slate-800 text-slate-400 hover:text-white'}`}>
+                                <Icons.Upload />
+                                <span>Upload & Logs</span>
+                            </button>
+                            <button onClick={() => { setActiveTab('meds'); setSelectedNews(null); }} className={`flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'meds' ? 'bg-indigo-600 text-white shadow-md' : 'hover:bg-slate-800 text-slate-400 hover:text-white'}`}>
+                                <Icons.Pill />
+                                <span>Medications</span>
+                            </button>
+                            <button onClick={() => { setActiveTab('drai'); setSelectedNews(null); }} className={`flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'drai' ? 'bg-indigo-600 text-white shadow-md' : 'hover:bg-slate-800 text-slate-400 hover:text-white'}`}>
+                                <Icons.Stethoscope />
+                                <span className="flex items-center justify-between w-full">
+                                    <span>Dr. AI Agent</span>
+                                    <span className="bg-emerald-500 text-slate-950 font-bold px-1.5 py-0.5 rounded text-[10px] uppercase">Online</span>
+                                </span>
+                            </button>
+                            <button onClick={() => { setActiveTab('news'); setSelectedNews(null); }} className={`flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'news' ? 'bg-indigo-600 text-white shadow-md' : 'hover:bg-slate-800 text-slate-400 hover:text-white'}`}>
+                                <Icons.News />
+                                <span>Longevity & News</span>
+                            </button>
+                            <button onClick={() => { setActiveTab('export'); setSelectedNews(null); }} className={`flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'export' ? 'bg-indigo-600 text-white shadow-md' : 'hover:bg-slate-800 text-slate-400 hover:text-white'}`}>
+                                <Icons.Database />
+                                <span>Data & Reports</span>
+                            </button>
+                        </nav>
+
+                        <div className="p-4 border-t border-slate-800 bg-slate-950/40">
+                            <div className="text-[10px] text-slate-500 uppercase font-semibold mb-2">Technical Status</div>
+                            <div className="flex items-center justify-between text-xs text-slate-400">
+                                <span className="flex items-center space-x-1.5">
+                                    <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full inline-block animate-ping"></span>
+                                    <span>Prisma Schema Ready</span>
+                                </span>
+                                <span className="text-indigo-400 font-medium">v1.1</span>
+                            </div>
+                        </div>
+                    </aside>
+
+                    {/* MAIN CONTENT AREA */}
+                    <main className="flex-1 flex flex-col overflow-y-auto pb-24 md:pb-0 h-screen">
+                        
+                        {/* CUSTOM PERSONAL BANNER */}
+                        <div className="bg-gradient-to-r from-indigo-700 via-indigo-900 to-slate-900 text-white p-6 md:p-8 shadow-md relative overflow-hidden flex-shrink-0">
+                            <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-gradient-to-l from-indigo-600/20 to-transparent pointer-events-none"></div>
+                            
+                            <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                                <div className="space-y-2">
+                                    <div className="inline-flex items-center space-x-2 bg-indigo-500/20 backdrop-blur-sm border border-indigo-500/30 px-3 py-1 rounded-full text-xs font-semibold text-indigo-200">
+                                        <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full"></span>
+                                        <span>Personal Longevity Hub</span>
+                                    </div>
+                                    <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">Healty Tracker</h1>
+                                    <p className="text-slate-300 text-sm md:text-base max-w-xl">
+                                        Empowering daily vitals precision, context-rich AI coaching, and longevity science updates.
+                                    </p>
+                                </div>
+
+                                {/* MIKAIL KOCAK BIO CARD */}
+                                <div className="flex items-center space-x-4 bg-white/10 backdrop-blur-md border border-white/20 p-3.5 rounded-2xl shadow-xl w-full md:w-auto">
+                                    <img 
+                                        src="mikail_kocak.png" 
+                                        alt="Mikail Kocak Portrait" 
+                                        className="w-16 h-16 rounded-xl object-cover shadow-md border-2 border-indigo-400 flex-shrink-0"
+                                        onError={(e) => {
+                                            e.target.src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop";
+                                        }}
+                                    />
+                                    <div className="flex-1">
+                                        <h2 className="text-lg font-bold text-white tracking-wide">Mikail KOCAK</h2>
+                                        <div className="flex flex-col gap-0.5 mt-0.5 text-xs text-indigo-100">
+                                            <span className="flex items-center">
+                                                <Icons.Calendar className="w-3.5 h-3.5 mr-1" /> DOB: 23 July 1979
+                                            </span>
+                                            <span className="flex items-center font-semibold text-emerald-300">
+                                                <Icons.User className="w-3.5 h-3.5 mr-1" /> Age: 46 (Longevity Goal: 100+)
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* SCREEN ROUTER */}
+                        <div className="p-4 md:p-8 flex-1">
+                            {activeTab === 'dashboard' && (
+                                <DashboardView 
+                                    glucose={glucose} 
+                                    bp={bp} 
+                                    medications={medications}
+                                    adherence={adherence}
+                                    setAdherence={setAdherence}
+                                    getGlucoseStatus={getGlucoseStatus}
+                                    getBPStatus={getBPStatus}
+                                    latestGlucose={latestGlucose}
+                                    latestBP={latestBP}
+                                    setActiveTab={setActiveTab}
+                                    documents={documents}
+                                />
+                            )}
+                            
+                            {activeTab === 'upload' && (
+                                <UploadView 
+                                    glucose={glucose} 
+                                    setGlucose={setGlucose} 
+                                    bp={bp} 
+                                    setBp={setBp}
+                                    documents={documents}
+                                    setDocuments={setDocuments}
+                                    getGlucoseStatus={getGlucoseStatus}
+                                    getBPStatus={getBPStatus}
+                                />
+                            )}
+
+                            {activeTab === 'meds' && (
+                                <MedicationsView 
+                                    medications={medications}
+                                    setMedications={setMedications}
+                                    adherence={adherence}
+                                    setAdherence={setAdherence}
+                                />
+                            )}
+
+                            {activeTab === 'drai' && (
+                                <DrAIView 
+                                    chatHistory={chatHistory}
+                                    setChatHistory={setChatHistory}
+                                    glucose={glucose}
+                                    bp={bp}
+                                    medications={medications}
+                                    documents={documents}
+                                />
+                            )}
+
+                            {activeTab === 'news' && (
+                                <NewsView 
+                                    news={news}
+                                    setNews={setNews}
+                                    selectedNews={selectedNews}
+                                    setSelectedNews={setSelectedNews}
+                                />
+                            )}
+
+                            {activeTab === 'export' && (
+                                <DataExportView 
+                                    glucose={glucose}
+                                    bp={bp}
+                                    medications={medications}
+                                    documents={documents}
+                                    handleClearAllData={handleClearAllData}
+                                />
+                            )}
+                        </div>
+                    </main>
+
+                    {/* BOTTOM NAVIGATION BAR FOR MOBILE */}
+                    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800 text-slate-400 z-50 flex justify-around py-3 px-2 shadow-2xl">
+                        <button onClick={() => { setActiveTab('dashboard'); setSelectedNews(null); }} className={`flex flex-col items-center space-y-1 transition-all ${activeTab === 'dashboard' ? 'text-indigo-400 font-bold scale-110' : 'text-slate-500 hover:text-slate-300'}`}>
+                            <Icons.Dashboard />
+                            <span className="text-[10px]">Home</span>
+                        </button>
+                        <button onClick={() => { setActiveTab('upload'); setSelectedNews(null); }} className={`flex flex-col items-center space-y-1 transition-all ${activeTab === 'upload' ? 'text-indigo-400 font-bold scale-110' : 'text-slate-500 hover:text-slate-300'}`}>
+                            <Icons.Upload />
+                            <span className="text-[10px]">Upload</span>
+                        </button>
+                        <button onClick={() => { setActiveTab('meds'); setSelectedNews(null); }} className={`flex flex-col items-center space-y-1 transition-all ${activeTab === 'meds' ? 'text-indigo-400 font-bold scale-110' : 'text-slate-500 hover:text-slate-300'}`}>
+                            <Icons.Pill />
+                            <span className="text-[10px]">Meds</span>
+                        </button>
+                        <button onClick={() => { setActiveTab('drai'); setSelectedNews(null); }} className={`flex flex-col items-center space-y-1 transition-all ${activeTab === 'drai' ? 'text-indigo-400 font-bold scale-110' : 'text-slate-500 hover:text-slate-300'}`}>
+                            <Icons.Stethoscope />
+                            <span className="text-[10px]">Dr. AI</span>
+                        </button>
+                        <button onClick={() => { setActiveTab('news'); setSelectedNews(null); }} className={`flex flex-col items-center space-y-1 transition-all ${activeTab === 'news' ? 'text-indigo-400 font-bold scale-110' : 'text-slate-500 hover:text-slate-300'}`}>
+                            <Icons.News />
+                            <span className="text-[10px]">News</span>
+                        </button>
+                        <button onClick={() => { setActiveTab('export'); setSelectedNews(null); }} className={`flex flex-col items-center space-y-1 transition-all ${activeTab === 'export' ? 'text-indigo-400 font-bold scale-110' : 'text-slate-500 hover:text-slate-300'}`}>
+                            <Icons.Database />
+                            <span className="text-[10px]">Data</span>
+                        </button>
+                    </nav>
+                </div>
+            );
+        }
+
+        /* 1. DASHBOARD COMPONENT */
+        function DashboardView({ glucose, bp, medications, adherence, setAdherence, getGlucoseStatus, getBPStatus, latestGlucose, latestBP, setActiveTab, documents }) {
+            const todayStr = '2026-06-17'; // Anchor date representing modern time
+            
+            // Calculate medication compliance for today
+            const activeMedsCount = medications.filter(m => m.active).length;
+            const morningMeds = medications.filter(m => m.active && m.morning);
+            const eveningMeds = medications.filter(m => m.active && m.evening);
+
+            const todayAdherence = adherence[todayStr] || { morning: [], evening: [] };
+            
+            const totalMedsSlots = morningMeds.length + eveningMeds.length;
+            const takenSlots = todayAdherence.morning.length + todayAdherence.evening.length;
+            const compliancePct = totalMedsSlots > 0 ? Math.round((takenSlots / totalMedsSlots) * 100) : 100;
+
+            const handleToggleQuickAdherence = (medId, timeOfDay) => {
+                const currentDay = todayAdherence;
+                let newTimeList = [...currentDay[timeOfDay]];
+                
+                if (newTimeList.includes(medId)) {
+                    newTimeList = newTimeList.filter(id => id !== medId);
+                } else {
+                    newTimeList.push(medId);
+                }
+
+                setAdherence({
+                    ...adherence,
+                    [todayStr]: {
+                        ...currentDay,
+                        [timeOfDay]: newTimeList
+                    }
+                });
+            };
+
+            // Glucose analytics calculation
+            const avgGlucose = useMemo(() => {
+                if (glucose.length === 0) return 0;
+                return Math.round(glucose.reduce((sum, r) => sum + Number(r.value), 0) / glucose.length);
+            }, [glucose]);
+
+            const optimalGlucoseCount = useMemo(() => {
+                return glucose.filter(g => {
+                    const status = getGlucoseStatus(Number(g.value));
+                    return status.label === 'Optimal';
+                }).length;
+            }, [glucose, getGlucoseStatus]);
+
+            const timeInOptimalRange = glucose.length > 0 
+                ? Math.round((optimalGlucoseCount / glucose.length) * 100) 
+                : 100;
+
+            return (
+                <div className="space-y-6">
+                    {/* TOP STATS ROW */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                        
+                        {/* GLUCOSE BANNER */}
+                        <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm relative overflow-hidden flex flex-col justify-between">
+                            <div className="flex justify-between items-start">
+                                <div className="space-y-1">
+                                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Glucose (Stelo CGM)</span>
+                                    <h3 className="text-3xl font-extrabold text-slate-900">
+                                        {latestGlucose.value} <span className="text-sm font-medium text-slate-400">mg/dL</span>
+                                    </h3>
+                                </div>
+                                <div className="p-3 bg-indigo-50 text-indigo-600 rounded-2xl">
+                                    <Icons.Droplet className="w-6 h-6" />
+                                </div>
+                            </div>
+                            
+                            <div className="mt-4 flex items-center justify-between">
+                                <div className="flex items-center space-x-2">
+                                    <span className={`w-2.5 h-2.5 rounded-full inline-block ${getGlucoseStatus(Number(latestGlucose.value)).dot}`}></span>
+                                    <span className="text-xs font-bold text-slate-700">{getGlucoseStatus(Number(latestGlucose.value)).label}</span>
+                                </div>
+                                <span className="text-[11px] text-slate-400 italic">
+                                    {latestGlucose.timeOfDay ? `${latestGlucose.timeOfDay} • ${latestGlucose.mealContext}` : 'No logs'}
+                                </span>
+                            </div>
+
+                            <div className="mt-4 pt-3 border-t border-slate-100 flex justify-between text-xs text-slate-500">
+                                <span>Weekly Avg: <strong>{avgGlucose} mg/dL</strong></span>
+                                <span className="text-emerald-600 font-semibold">TIR: {timeInOptimalRange}%</span>
+                            </div>
+                        </div>
+
+                        {/* BLOOD PRESSURE CARD */}
+                        <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm relative overflow-hidden flex flex-col justify-between">
+                            <div className="flex justify-between items-start">
+                                <div className="space-y-1">
+                                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Blood Pressure Vitals</span>
+                                    <h3 className="text-3xl font-extrabold text-slate-900">
+                                        {latestBP.systolic}/{latestBP.diastolic} <span className="text-xs font-medium text-slate-400">mmHg</span>
+                                    </h3>
+                                </div>
+                                <div className="p-3 bg-red-50 text-red-500 rounded-2xl">
+                                    <Icons.Heart className="w-6 h-6" />
+                                </div>
+                            </div>
+
+                            <div className="mt-4 flex items-center justify-between">
+                                <div className="flex items-center space-x-2">
+                                    <span className={`w-2.5 h-2.5 rounded-full inline-block ${getBPStatus(Number(latestBP.systolic), Number(latestBP.diastolic)).dot}`}></span>
+                                    <span className="text-xs font-bold text-slate-700">{getBPStatus(Number(latestBP.systolic), Number(latestBP.diastolic)).label}</span>
+                                </div>
+                                <span className="text-[11px] text-slate-400 font-medium">
+                                    Pulse: <strong>{latestBP.pulse}</strong> bpm
+                                </span>
+                            </div>
+
+                            <div className="mt-4 pt-3 border-t border-slate-100 flex justify-between text-xs text-slate-500">
+                                <span>Target: <strong>&lt; 120/80 mmHg</strong></span>
+                                <span className="text-slate-400">Last updated: {latestBP.date}</span>
+                            </div>
+                        </div>
+
+                        {/* MEDICATION COMPLIANCE */}
+                        <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm relative overflow-hidden flex flex-col justify-between">
+                            <div className="flex justify-between items-start">
+                                <div className="space-y-1">
+                                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Medications Adherence</span>
+                                    <h3 className="text-3xl font-extrabold text-slate-900">
+                                        {takenSlots}/{totalMedsSlots} <span className="text-xs font-medium text-slate-400">taken today</span>
+                                    </h3>
+                                </div>
+                                <div className="p-3 bg-emerald-50 text-emerald-600 rounded-2xl">
+                                    <Icons.Pill />
+                                </div>
+                            </div>
+
+                            {/* PROGRESS BAR */}
+                            <div className="mt-4">
+                                <div className="flex justify-between items-center text-xs text-slate-500 mb-1.5 font-medium">
+                                    <span>Today's Routine Completion</span>
+                                    <span className="font-bold text-indigo-600">{compliancePct}%</span>
+                                </div>
+                                <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                                    <div className="bg-indigo-600 h-full rounded-full transition-all duration-500" style={{ width: `${compliancePct}%` }}></div>
+                                </div>
+                            </div>
+
+                            <div className="mt-4 pt-3 border-t border-slate-100 flex justify-between text-xs text-slate-500">
+                                <span>Active Regimens: <strong>{activeMedsCount}</strong></span>
+                                <button onClick={() => setActiveTab('meds')} className="text-indigo-600 font-bold hover:underline flex items-center space-x-1">
+                                    <span>Manage Meds</span>
+                                    <Icons.ArrowRight className="w-3 h-3" />
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    {/* TWO-COLUMN LAYOUT: QUICK TODAY METRICS & LATEST UPLOADS */}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                        
+                        {/* PATTERNS & QUICK TIMELINE - 7 COLS */}
+                        <div className="lg:col-span-7 space-y-6">
+                            
+                            {/* TIME OF DAY ANALYSIS */}
+                            <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm">
+                                <div className="flex justify-between items-center mb-4">
+                                    <div>
+                                        <h4 className="text-base font-bold text-slate-900">Time-of-Day Pattern Tracking</h4>
+                                        <p className="text-xs text-slate-400 mt-0.5">Average glucose values plotted across meals and schedule context.</p>
+                                    </div>
+                                    <div className="flex items-center space-x-2 bg-slate-100 px-3 py-1 rounded-xl text-xs font-semibold text-slate-600">
+                                        <span>7-Day Log Insights</span>
+                                    </div>
+                                </div>
+
+                                {/* VISUAL MATRIX PLOT */}
+                                <div className="grid grid-cols-3 gap-3.5 mt-2">
+                                    
+                                    {/* MORNING / FASTING */}
+                                    <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 hover:border-indigo-100 transition-all text-center">
+                                        <div className="inline-flex p-2 bg-amber-50 text-amber-600 rounded-full mb-1">
+                                            <Icons.Clock className="w-4 h-4" />
+                                        </div>
+                                        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Morning (Fasting)</div>
+                                        <div className="text-2xl font-black text-slate-800 mt-1">96 <span className="text-[10px] font-medium text-slate-400">mg/dL</span></div>
+                                        <span className="inline-block mt-2 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-200">Optimal (98%)</span>
+                                    </div>
+
+                                    {/* AFTERNOON / POST FOOD */}
+                                    <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 hover:border-indigo-100 transition-all text-center">
+                                        <div className="inline-flex p-2 bg-indigo-50 text-indigo-600 rounded-full mb-1">
+                                            <Icons.Clock className="w-4 h-4" />
+                                        </div>
+                                        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Afternoon</div>
+                                        <div className="text-2xl font-black text-slate-800 mt-1">118 <span className="text-[10px] font-medium text-slate-400">mg/dL</span></div>
+                                        <span className="inline-block mt-2 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-200">Post-Meal Normal</span>
+                                    </div>
+
+                                    {/* EVENING / DINNER */}
+                                    <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 hover:border-indigo-100 transition-all text-center">
+                                        <div className="inline-flex p-2 bg-purple-50 text-purple-600 rounded-full mb-1">
+                                            <Icons.Clock className="w-4 h-4" />
+                                        </div>
+                                        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Evening (Dinner)</div>
+                                        <div className="text-2xl font-black text-slate-800 mt-1">108 <span className="text-[10px] font-medium text-slate-400">mg/dL</span></div>
+                                        <span className="inline-block mt-2 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-600 border border-amber-200">Stable Baseline</span>
+                                    </div>
+
+                                </div>
+
+                                <div className="mt-5 bg-indigo-50/50 rounded-2xl p-4 border border-indigo-100/60 flex items-start space-x-3.5 text-xs text-indigo-900">
+                                    <Icons.Sparkles className="w-5 h-5 text-indigo-500 flex-shrink-0 mt-0.5" />
+                                    <div>
+                                        <strong className="font-semibold block text-indigo-950">Mikail's Longevity Observation:</strong>
+                                        Your post-prandial glucose spike is heavily blunted (average increase of only +22 mg/dL) when walking 10 minutes post-meals. Metformin synergy is highly supportive.
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* RECENT GLUCOSE HISTORY TABLE & QUICK ADD */}
+                            <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h4 className="text-base font-bold text-slate-900">Recent Vitals Log Entries</h4>
+                                    <button onClick={() => setActiveTab('upload')} className="text-xs font-bold text-indigo-600 hover:underline flex items-center space-x-1">
+                                        <span>Add Reading</span>
+                                        <Icons.Plus className="w-3.5 h-3.5" />
+                                    </button>
+                                </div>
+
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-left text-xs">
+                                        <thead>
+                                            <tr className="border-b border-slate-100 text-slate-400 uppercase font-semibold">
+                                                <th className="pb-2">Date / Time</th>
+                                                <th className="pb-2">Glucose Level</th>
+                                                <th className="pb-2">Meal Context</th>
+                                                <th className="pb-2">Status</th>
+                                                <th className="pb-2">Contextual Notes</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-100">
+                                            {glucose.slice(0, 4).map((g) => {
+                                                const status = getGlucoseStatus(Number(g.value));
+                                                return (
+                                                    <tr key={g.id} className="hover:bg-slate-50/50">
+                                                        <td className="py-2.5 font-medium text-slate-600">
+                                                            {g.date} • <span className="text-slate-400">{g.timeOfDay}</span>
+                                                        </td>
+                                                        <td className="py-2.5 font-extrabold text-slate-800">{g.value} mg/dL</td>
+                                                        <td className="py-2.5">
+                                                            <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-medium text-[10px]">
+                                                                {g.mealContext}
+                                                            </span>
+                                                        </td>
+                                                        <td className="py-2.5">
+                                                            <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold border ${status.color}`}>
+                                                                {status.label}
+                                                            </span>
+                                                        </td>
+                                                        <td className="py-2.5 text-slate-500 italic truncate max-w-[150px]">{g.notes || '--'}</td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        {/* LATEST LABS & OCR DOCUMENTS & DAILY MED CHECKS - 5 COLS */}
+                        <div className="lg:col-span-5 space-y-6">
+                            
+                            {/* INSTANT TODAY MED CHECKLIST */}
+                            <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div>
+                                        <h4 className="text-base font-bold text-slate-900">Today's Quick Med Intake</h4>
+                                        <p className="text-xs text-slate-400">Mark off medication taken on 17-June-2026</p>
+                                    </div>
+                                    <Icons.Pill className="text-slate-400 w-5 h-5" />
+                                </div>
+
+                                <div className="space-y-3.5">
+                                    {/* MORNING MEDS HEADER */}
+                                    <div>
+                                        <span className="text-[10px] uppercase font-bold text-amber-500 tracking-wider flex items-center mb-1.5">
+                                            ☀️ Morning Day Routine
+                                        </span>
+                                        <div className="space-y-1.5">
+                                            {morningMeds.map((med) => {
+                                                const taken = todayAdherence.morning.includes(med.id);
+                                                return (
+                                                    <div 
+                                                        key={`m-${med.id}`} 
+                                                        onClick={() => handleToggleQuickAdherence(med.id, 'morning')}
+                                                        className={`flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition-all ${taken ? 'bg-emerald-50/50 border-emerald-200' : 'bg-slate-50 hover:bg-slate-100 border-slate-100'}`}
+                                                    >
+                                                        <div className="flex items-center space-x-2">
+                                                            <div className={`w-5 h-5 rounded-md flex items-center justify-center border transition-all ${taken ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-300 bg-white'}`}>
+                                                                {taken && <Icons.Check className="w-3.5 h-3.5" />}
+                                                            </div>
+                                                            <span className={`text-xs font-semibold ${taken ? 'line-through text-slate-400' : 'text-slate-700'}`}>
+                                                                {med.name} <span className="text-[10px] font-medium text-slate-400">({med.dosage})</span>
+                                                            </span>
+                                                        </div>
+                                                        <span className="text-[10px] text-slate-400">Morning</span>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+
+                                    {/* EVENING MEDS HEADER */}
+                                    <div className="pt-2">
+                                        <span className="text-[10px] uppercase font-bold text-indigo-500 tracking-wider flex items-center mb-1.5">
+                                            🌙 Evening Night Routine
+                                        </span>
+                                        <div className="space-y-1.5">
+                                            {eveningMeds.map((med) => {
+                                                const taken = todayAdherence.evening.includes(med.id);
+                                                return (
+                                                    <div 
+                                                        key={`e-${med.id}`} 
+                                                        onClick={() => handleToggleQuickAdherence(med.id, 'evening')}
+                                                        className={`flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition-all ${taken ? 'bg-indigo-50/40 border-indigo-200' : 'bg-slate-50 hover:bg-slate-100 border-slate-100'}`}
+                                                    >
+                                                        <div className="flex items-center space-x-2">
+                                                            <div className={`w-5 h-5 rounded-md flex items-center justify-center border transition-all ${taken ? 'bg-indigo-600 border-indigo-600 text-white' : 'border-slate-300 bg-white'}`}>
+                                                                {taken && <Icons.Check className="w-3.5 h-3.5" />}
+                                                            </div>
+                                                            <span className={`text-xs font-semibold ${taken ? 'line-through text-slate-400' : 'text-slate-700'}`}>
+                                                                {med.name} <span className="text-[10px] font-medium text-slate-400">({med.dosage})</span>
+                                                            </span>
+                                                        </div>
+                                                        <span className="text-[10px] text-slate-400">Evening</span>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            {/* RECENT LAB WORK DOCUMENTS */}
+                            <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm">
+                                <div className="flex justify-between items-center mb-3">
+                                    <h4 className="text-base font-bold text-slate-900">Analyzed Lab Reports</h4>
+                                    <button onClick={() => setActiveTab('upload')} className="text-xs text-indigo-600 hover:underline font-bold">Upload New</button>
+                                </div>
+
+                                <div className="space-y-3">
+                                    {documents.map((doc) => (
+                                        <div key={doc.id} className="p-3 bg-slate-50 border border-slate-100 hover:border-indigo-100 transition-all rounded-2xl flex items-start space-x-3">
+                                            <div className="p-2.5 bg-white rounded-xl text-indigo-500 shadow-sm border border-slate-100">
+                                                {doc.type.includes('pdf') ? <Icons.FilePdf className="w-5 h-5 text-red-500" /> : <Icons.Doc className="w-5 h-5 text-indigo-500" />}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-xs font-bold text-slate-700 truncate max-w-[130px] block">{doc.name}</span>
+                                                    <span className="text-[9px] bg-emerald-50 text-emerald-600 font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider">Parsed</span>
+                                                </div>
+                                                <div className="text-[10px] text-slate-400 font-medium mt-0.5">{doc.category} • {doc.date}</div>
+                                                <p className="text-[10px] text-slate-600 italic bg-white border border-slate-100 p-1.5 rounded-lg mt-1.5 truncate">
+                                                    {doc.extracted}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+            );
+        }
+
+        /* 2. UPLOAD & MANUAL LOGS COMPONENT */
+        function UploadView({ glucose, setGlucose, bp, setBp, documents, setDocuments, getGlucoseStatus, getBPStatus }) {
+            
+            // Log Input States
+            const [glValue, setGlValue] = useState('105');
+            const [glTime, setGlTime] = useState('Morning');
+            const [glContext, setGlContext] = useState('Fasting');
+            const [glNotes, setGlNotes] = useState('');
+            const [glDate, setGlDate] = useState('2026-06-17');
+
+            const [bpSys, setBpSys] = useState('118');
+            const [bpDia, setBpDia] = useState('78');
+            const [bpPulse, setBpPulse] = useState('68');
+            const [bpTime, setBpTime] = useState('Morning');
+            const [bpNotes, setBpNotes] = useState('');
+            const [bpDate, setBpDate] = useState('2026-06-17');
+
+            // Simulated File Upload State
+            const [selectedFile, setSelectedFile] = useState(null);
+            const [uploadCategory, setUploadCategory] = useState('Auto-Detect OCR');
+            const [isUploading, setIsUploading] = useState(false);
+            const [uploadProgress, setUploadProgress] = useState(0);
+            const [scanLog, setScanLog] = useState([]);
+
+            const handleAddGlucose = (e) => {
+                e.preventDefault();
+                const newReading = {
+                    id: Date.now(),
+                    value: parseInt(glValue),
+                    timeOfDay: glTime,
+                    mealContext: glContext,
+                    date: glDate,
+                    notes: glNotes
+                };
+                setGlucose([newReading, ...glucose]);
+                setGlNotes('');
+                alert('Glucose reading saved successfully!');
+            };
+
+            const handleAddBP = (e) => {
+                e.preventDefault();
+                const newReading = {
+                    id: Date.now(),
+                    systolic: parseInt(bpSys),
+                    diastolic: parseInt(bpDia),
+                    pulse: parseInt(bpPulse),
+                    timeOfDay: bpTime,
+                    date: bpDate,
+                    notes: bpNotes
+                };
+                setBp([newReading, ...bp]);
+                setBpNotes('');
+                alert('Blood Pressure vital logged successfully!');
+            };
+
+            // File selection emulation
+            const handleFileChange = (e) => {
+                if (e.target.files && e.target.files[0]) {
+                    setSelectedFile(e.target.files[0]);
+                }
+            };
+
+            const triggerDemoFile = (type) => {
+                if (type === 'stelo') {
+                    setSelectedFile({
+                        name: 'Stelo_CGM_Report_June_17.png',
+                        size: 2450000,
+                        type: 'image/png'
+                    });
+                    setUploadCategory('Stelo CGM Screenshot');
+                } else {
+                    setSelectedFile({
+                        name: 'Quest_Diagnostics_Metabolic_Panel.pdf',
+                        size: 1540000,
+                        type: 'application/pdf'
+                    });
+                    setUploadCategory('Blood Work');
+                }
+            };
+
+            const handleSimulatedOCR = () => {
+                if (!selectedFile) return;
+
+                setIsUploading(true);
+                setUploadProgress(10);
+                setScanLog(["Initializing AI OCR Sandbox...", "Uploading file locally..."]);
+
+                const runLogSteps = [
+                    { progress: 30, text: "Scanning document pixels and structural vectors..." },
+                    { progress: 50, text: `Auto-Detecting Category: Match found -> [${uploadCategory === 'Auto-Detect OCR' ? 'Stelo CGM SmartScreenshot' : uploadCategory}]` },
+                    { progress: 75, text: "Parsing medical metrics using Longevity-optimized LLM..." },
+                    { progress: 90, text: "Validating clinical range variables... Status: Success." },
+                    { progress: 100, text: "Integrating data directly with Mikail's active context." }
+                ];
+
+                runLogSteps.forEach((step, index) => {
+                    setTimeout(() => {
+                        setUploadProgress(step.progress);
+                        setScanLog(prev => [...prev, step.text]);
+                        
+                        if (step.progress === 100) {
+                            setTimeout(() => {
+                                // Add to documents
+                                const isStelo = selectedFile.name.toLowerCase().includes('stelo') || uploadCategory.includes('Stelo');
+                                const docCategory = isStelo ? 'Stelo CGM Screenshot' : 'Lipid Panel';
+                                const extractedData = isStelo 
+                                    ? 'Avg Glucose: 108 mg/dL. Fasting morning steady. No extreme spikes.' 
+                                    : 'Cholesterol: 188 mg/dL (Desirable), Triglycerides: 110 (Optimal).';
+
+                                const newDoc = {
+                                    id: Date.now(),
+                                    name: selectedFile.name,
+                                    type: selectedFile.type,
+                                    category: docCategory,
+                                    size: `${(selectedFile.size / (1024 * 1024)).toFixed(1)} MB`,
+                                    date: '2026-06-17',
+                                    status: 'Parsed Successfully',
+                                    extracted: extractedData
+                                };
+
+                                setDocuments([newDoc, ...documents]);
+
+                                // Auto-inject a reading if it's a Stelo report
+                                if (isStelo) {
+                                    const autoGlucose = {
+                                        id: Date.now() + 1,
+                                        value: 108,
+                                        timeOfDay: 'Morning',
+                                        mealContext: 'Fasting',
+                                        date: '2026-06-17',
+                                        notes: 'Auto-extracted from uploaded Stelo Screenshot.'
+                                    };
+                                    setGlucose([autoGlucose, ...glucose]);
+                                }
+
+                                setIsUploading(false);
+                                setSelectedFile(null);
+                                setScanLog([]);
+                                alert('AI OCR Processing Complete! Your vitals have been updated.');
+                            }, 800);
+                        }
+                    }, (index + 1) * 700);
+                });
+            };
+
+            return (
+                <div className="space-y-6">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
+                        <div>
+                            <h2 className="text-2xl font-black text-slate-900 tracking-tight">Upload Center & Quick Logs</h2>
+                            <p className="text-sm text-slate-500">Upload your Stelo CGM reports, blood work panels, or manually input daily vitals.</p>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                        
+                        {/* LEFT COLUMN: OCR UPLOAD PORTAL - 6 COLS */}
+                        <div className="lg:col-span-6 space-y-6">
+                            <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm">
+                                <h3 className="text-base font-bold text-slate-900 mb-2 flex items-center space-x-2">
+                                    <Icons.Upload className="text-indigo-600" />
+                                    <span>AI OCR Document Scanner</span>
+                                </h3>
+                                <p className="text-xs text-slate-400 mb-4">
+                                    Drop your laboratory report PDF, Lipid panels, or direct Stelo CGM mobile screenshots. Our built-in intelligence instantly categorizes it and pulls the numbers!
+                                </p>
+
+                                {/* FILE DROPZONE */}
+                                <div className="border-2 border-dashed border-slate-200 hover:border-indigo-400 bg-slate-50/50 hover:bg-slate-50 rounded-2xl p-6 transition-all text-center flex flex-col items-center justify-center">
+                                    <Icons.Upload className="w-10 h-10 text-slate-400 mb-3" />
+                                    {selectedFile ? (
+                                        <div className="space-y-1">
+                                            <p className="text-xs font-bold text-slate-700">{selectedFile.name}</p>
+                                            <p className="text-[10px] text-slate-400">{(selectedFile.size / 1024).toFixed(0)} KB</p>
+                                        </div>
+                                    ) : (
+                                        <div>
+                                            <p className="text-xs font-semibold text-slate-700">Drag & drop your health image/PDF or click browse</p>
+                                            <p className="text-[10px] text-slate-400 mt-1">Supports PNG, JPG, PDF up to 10MB</p>
+                                        </div>
+                                    )}
+                                    <input 
+                                        type="file" 
+                                        className="hidden" 
+                                        id="actual-file-input" 
+                                        onChange={handleFileChange} 
+                                    />
+                                    <label htmlFor="actual-file-input" className="mt-4 px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold rounded-xl text-xs shadow-sm cursor-pointer inline-block">
+                                        Browse File
+                                    </label>
+                                </div>
+
+                                {/* PREMADE DEMO BUTTONS */}
+                                {!selectedFile && !isUploading && (
+                                    <div className="mt-4 bg-indigo-50/50 rounded-2xl p-4 border border-indigo-100/60">
+                                        <span className="text-[10px] font-bold text-indigo-700 uppercase tracking-widest block mb-2">Simulate Live Upload (Demo Files)</span>
+                                        <div className="flex gap-2">
+                                            <button 
+                                                onClick={() => triggerDemoFile('stelo')}
+                                                className="flex-1 px-3 py-2 bg-white hover:bg-indigo-50 border border-indigo-100 rounded-xl text-xs text-indigo-700 font-bold flex items-center justify-center space-x-1.5 shadow-sm"
+                                            >
+                                                <Icons.Droplet className="w-4 h-4 text-indigo-500" />
+                                                <span>Stelo CGM Screenshot</span>
+                                            </button>
+                                            <button 
+                                                onClick={() => triggerDemoFile('lipid')}
+                                                className="flex-1 px-3 py-2 bg-white hover:bg-indigo-50 border border-indigo-100 rounded-xl text-xs text-indigo-700 font-bold flex items-center justify-center space-x-1.5 shadow-sm"
+                                            >
+                                                <Icons.FilePdf className="w-4 h-4 text-red-500" />
+                                                <span>Lab Work PDF Report</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* FILE SUBMIT OPTIONS */}
+                                {selectedFile && !isUploading && (
+                                    <div className="mt-4 space-y-3.5 pt-4 border-t border-slate-100">
+                                        <div className="flex gap-4">
+                                            <div className="flex-1">
+                                                <label className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">Report Category</label>
+                                                <select 
+                                                    value={uploadCategory} 
+                                                    onChange={(e) => setUploadCategory(e.target.value)}
+                                                    className="w-full mt-1 bg-white border border-slate-200 rounded-xl p-2 text-xs font-semibold focus:outline-indigo-500"
+                                                >
+                                                    <option value="Auto-Detect OCR">Auto-Detect Category (OCR)</option>
+                                                    <option value="Stelo CGM Screenshot">Stelo CGM Report</option>
+                                                    <option value="Blood Work">Blood Work Panel</option>
+                                                    <option value="Lipid Panel">Lipid Panel</option>
+                                                    <option value="Thyroid Panel">Thyroid Panel</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex gap-2">
+                                            <button 
+                                                onClick={() => setSelectedFile(null)}
+                                                className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs"
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button 
+                                                onClick={handleSimulatedOCR}
+                                                className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs shadow-md"
+                                            >
+                                                Run OCR Scan
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* OCR ACTIVE PROGRESS PANEL */}
+                                {isUploading && (
+                                    <div className="mt-4 bg-slate-900 text-slate-300 rounded-2xl p-4 font-mono text-[10px] space-y-2">
+                                        <div className="flex justify-between items-center text-white mb-1">
+                                            <span className="flex items-center space-x-2">
+                                                <span className="w-2 h-2 bg-indigo-500 rounded-full animate-ping"></span>
+                                                <span className="font-bold">AI OCR Extraction Running...</span>
+                                            </span>
+                                            <span className="text-indigo-400 font-bold">{uploadProgress}%</span>
+                                        </div>
+                                        <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                                            <div className="bg-indigo-500 h-full rounded-full transition-all duration-300" style={{ width: `${uploadProgress}%` }}></div>
+                                        </div>
+                                        <div className="space-y-1 h-24 overflow-y-auto pt-2 border-t border-slate-800 text-slate-400">
+                                            {scanLog.map((log, i) => (
+                                                <div key={i} className="flex items-start">
+                                                    <span className="text-emerald-500 mr-1.5">✓</span>
+                                                    <span>{log}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* PREVIOUSLY PARSED DOCS PREVIEW */}
+                            <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm">
+                                <h3 className="text-base font-bold text-slate-900 mb-3">Recently Uploaded Files Database</h3>
+                                <div className="space-y-3">
+                                    {documents.map((doc) => (
+                                        <div key={doc.id} className="p-3.5 bg-slate-50 border border-slate-100 rounded-2xl flex items-start justify-between">
+                                            <div className="flex items-start space-x-3">
+                                                <div className="p-2 bg-white rounded-xl shadow-sm border border-slate-100">
+                                                    {doc.type.includes('pdf') ? <Icons.FilePdf className="w-5 h-5 text-red-500" /> : <Icons.Doc className="w-5 h-5 text-indigo-500" />}
+                                                </div>
+                                                <div>
+                                                    <h4 className="text-xs font-bold text-slate-800">{doc.name}</h4>
+                                                    <span className="text-[10px] text-slate-400">{doc.category} • {doc.size}</span>
+                                                    <p className="text-[10px] text-slate-500 italic mt-1.5 bg-white border border-slate-100 p-2 rounded-lg leading-relaxed">
+                                                        <strong>Data Analyzed:</strong> {doc.extracted}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <button 
+                                                onClick={() => {
+                                                    if (window.confirm("Delete this document?")) {
+                                                        setDocuments(documents.filter(d => d.id !== doc.id));
+                                                    }
+                                                }}
+                                                className="text-slate-300 hover:text-red-500 p-1"
+                                            >
+                                                <Icons.Trash className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* RIGHT COLUMN: MANUAL ENTRY LABELS - 6 COLS */}
+                        <div className="lg:col-span-6 space-y-6">
+                            
+                            {/* GLUCOSE ENTRY CARD */}
+                            <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm">
+                                <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center space-x-2">
+                                    <Icons.Droplet className="text-indigo-600" />
+                                    <span>Log Daily Glucose</span>
+                                </h3>
+                                <form onSubmit={handleAddGlucose} className="space-y-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">Glucose (mg/dL)</label>
+                                            <input 
+                                                type="number" 
+                                                required
+                                                value={glValue} 
+                                                onChange={(e) => setGlValue(e.target.value)}
+                                                className="w-full mt-1 bg-slate-50 focus:bg-white border border-slate-200 focus:border-indigo-500 rounded-xl p-3 text-sm font-bold focus:outline-none transition-all"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">Date Logged</label>
+                                            <input 
+                                                type="date" 
+                                                required
+                                                value={glDate} 
+                                                onChange={(e) => setGlDate(e.target.value)}
+                                                className="w-full mt-1 bg-slate-50 focus:bg-white border border-slate-200 focus:border-indigo-500 rounded-xl p-3 text-xs font-semibold focus:outline-none transition-all"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">Time of Day</label>
+                                            <select 
+                                                value={glTime} 
+                                                onChange={(e) => setGlTime(e.target.value)}
+                                                className="w-full mt-1 bg-slate-50 border border-slate-200 focus:border-indigo-500 rounded-xl p-3 text-xs font-semibold focus:outline-none focus:bg-white transition-all"
+                                            >
+                                                <option value="Morning">Morning</option>
+                                                <option value="Afternoon">Afternoon</option>
+                                                <option value="Evening">Evening</option>
+                                                <option value="Night">Night</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">Meal Context</label>
+                                            <select 
+                                                value={glContext} 
+                                                onChange={(e) => setGlContext(e.target.value)}
+                                                className="w-full mt-1 bg-slate-50 border border-slate-200 focus:border-indigo-500 rounded-xl p-3 text-xs font-semibold focus:outline-none focus:bg-white transition-all"
+                                            >
+                                                <option value="Fasting">Fasting</option>
+                                                <option value="Before Meal">Before Meal</option>
+                                                <option value="After Meal">After Meal</option>
+                                                <option value="General">General/Unspecified</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">Contextual Notes (Optional)</label>
+                                        <input 
+                                            type="text" 
+                                            placeholder="e.g., Felt great, 15m light walking post-meal"
+                                            value={glNotes} 
+                                            onChange={(e) => setGlNotes(e.target.value)}
+                                            className="w-full mt-1 bg-slate-50 focus:bg-white border border-slate-200 focus:border-indigo-500 rounded-xl p-3 text-xs font-medium focus:outline-none transition-all"
+                                        />
+                                    </div>
+
+                                    <button 
+                                        type="submit"
+                                        className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs shadow-md transition-all uppercase tracking-wider"
+                                    >
+                                        Log Glucose Entry
+                                    </button>
+                                </form>
+                            </div>
+
+                            {/* BLOOD PRESSURE ENTRY CARD */}
+                            <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm">
+                                <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center space-x-2">
+                                    <Icons.Heart className="text-red-500" />
+                                    <span>Log Daily Blood Pressure</span>
+                                </h3>
+                                <form onSubmit={handleAddBP} className="space-y-4">
+                                    <div className="grid grid-cols-3 gap-3">
+                                        <div>
+                                            <label className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">Systolic</label>
+                                            <input 
+                                                type="number" 
+                                                required
+                                                placeholder="120"
+                                                value={bpSys} 
+                                                onChange={(e) => setBpSys(e.target.value)}
+                                                className="w-full mt-1 bg-slate-50 focus:bg-white border border-slate-200 focus:border-indigo-500 rounded-xl p-3 text-sm font-bold focus:outline-none transition-all"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">Diastolic</label>
+                                            <input 
+                                                type="number" 
+                                                required
+                                                placeholder="80"
+                                                value={bpDia} 
+                                                onChange={(e) => setBpDia(e.target.value)}
+                                                className="w-full mt-1 bg-slate-50 focus:bg-white border border-slate-200 focus:border-indigo-500 rounded-xl p-3 text-sm font-bold focus:outline-none transition-all"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">Pulse (bpm)</label>
+                                            <input 
+                                                type="number" 
+                                                required
+                                                placeholder="70"
+                                                value={bpPulse} 
+                                                onChange={(e) => setBpPulse(e.target.value)}
+                                                className="w-full mt-1 bg-slate-50 focus:bg-white border border-slate-200 focus:border-indigo-500 rounded-xl p-3 text-sm font-bold focus:outline-none transition-all"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">Schedule Frame</label>
+                                            <select 
+                                                value={bpTime} 
+                                                onChange={(e) => setBpTime(e.target.value)}
+                                                className="w-full mt-1 bg-slate-50 border border-slate-200 focus:border-indigo-500 rounded-xl p-3 text-xs font-semibold focus:outline-none focus:bg-white transition-all"
+                                            >
+                                                <option value="Morning">Morning (Fasting)</option>
+                                                <option value="Evening">Evening (Resting)</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">Measurement Date</label>
+                                            <input 
+                                                type="date" 
+                                                required
+                                                value={bpDate} 
+                                                onChange={(e) => setBpDate(e.target.value)}
+                                                className="w-full mt-1 bg-slate-50 focus:bg-white border border-slate-200 focus:border-indigo-500 rounded-xl p-3 text-xs font-semibold focus:outline-none transition-all"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">Observations (Optional)</label>
+                                        <input 
+                                            type="text" 
+                                            placeholder="e.g., Sitting comfortably, post resting 5 mins"
+                                            value={bpNotes} 
+                                            onChange={(e) => setBpNotes(e.target.value)}
+                                            className="w-full mt-1 bg-slate-50 focus:bg-white border border-slate-200 focus:border-indigo-500 rounded-xl p-3 text-xs font-medium focus:outline-none transition-all"
+                                        />
+                                    </div>
+
+                                    <button 
+                                        type="submit"
+                                        className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs shadow-md transition-all uppercase tracking-wider"
+                                    >
+                                        Log Blood Pressure Reading
+                                    </button>
+                                </form>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        /* 3. MEDICATIONS MANAGEMENT VIEW */
+        function MedicationsView({ medications, setMedications, adherence, setAdherence }) {
+            
+            // New Medication Fields
+            const [medName, setMedName] = useState('');
+            const [medDosage, setMedDosage] = useState('');
+            const [medMorning, setMedMorning] = useState(true);
+            const [medEvening, setMedEvening] = useState(true);
+
+            const handleAddMedication = (e) => {
+                e.preventDefault();
+                if (!medName || !medDosage) return;
+
+                const newMed = {
+                    id: Date.now(),
+                    name: medName,
+                    dosage: medDosage,
+                    morning: medMorning,
+                    evening: medEvening,
+                    active: true
+                };
+
+                setMedications([...medications, newMed]);
+                setMedName('');
+                setMedDosage('');
+                setMedMorning(true);
+                setMedEvening(true);
+                alert(`${medName} successfully registered to your daily routine!`);
+            };
+
+            const toggleMedActive = (id) => {
+                setMedications(medications.map(m => m.id === id ? { ...m, active: !m.active } : m));
+            };
+
+            const handleDeleteMed = (id) => {
+                if (window.confirm("Permanently remove this medication from tracking?")) {
+                    setMedications(medications.filter(m => m.id !== id));
+                }
+            };
+
+            return (
+                <div className="space-y-6">
+                    <div>
+                        <h2 className="text-2xl font-black text-slate-900 tracking-tight">Active Medications Regimen</h2>
+                        <p className="text-sm text-slate-500">Manage prescription schedules designed around two highly optimized intervals: Day (Morning) and Night (Evening).</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                        
+                        {/* CURRENT LIST OF MEDICATIONS - 7 COLS */}
+                        <div className="lg:col-span-7 space-y-4">
+                            <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm">
+                                <h3 className="text-base font-bold text-slate-900 mb-4">Active Schedule (Day vs Night)</h3>
+                                
+                                <div className="space-y-3">
+                                    {medications.map((med) => (
+                                        <div 
+                                            key={med.id} 
+                                            className={`p-4 rounded-2xl border transition-all flex items-center justify-between ${med.active ? 'bg-white border-slate-200 shadow-sm' : 'bg-slate-50/50 border-slate-100 opacity-60'}`}
+                                        >
+                                            <div className="flex items-center space-x-3">
+                                                <div className={`p-2.5 rounded-xl ${med.active ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-100 text-slate-400'}`}>
+                                                    <Icons.Pill className="w-5 h-5" />
+                                                </div>
+                                                <div>
+                                                    <div className="flex items-center space-x-2">
+                                                        <h4 className="text-sm font-bold text-slate-800">{med.name}</h4>
+                                                        <span className="text-xs bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-bold">{med.dosage}</span>
+                                                    </div>
+                                                    
+                                                    {/* TIMING CHIPS */}
+                                                    <div className="flex items-center gap-1.5 mt-1.5">
+                                                        {med.morning && (
+                                                            <span className="text-[9px] font-bold bg-amber-50 text-amber-600 border border-amber-200 px-2 py-0.5 rounded-full uppercase">☀️ Morning</span>
+                                                        )}
+                                                        {med.evening && (
+                                                            <span className="text-[9px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-200 px-2 py-0.5 rounded-full uppercase">🌙 Evening</span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center space-x-3">
+                                                {/* ACTIVE STATE TOGGLE */}
+                                                <button 
+                                                    onClick={() => toggleMedActive(med.id)}
+                                                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${med.active ? 'bg-indigo-50 hover:bg-indigo-100/80 border-indigo-200 text-indigo-700' : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-500'}`}
+                                                >
+                                                    {med.active ? 'Active' : 'Paused'}
+                                                </button>
+
+                                                {/* TRASH */}
+                                                <button 
+                                                    onClick={() => handleDeleteMed(med.id)}
+                                                    className="p-2 text-slate-300 hover:text-red-500 rounded-lg hover:bg-red-50 transition-all"
+                                                >
+                                                    <Icons.Trash className="w-4.5 h-4.5" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* BIO-INSIGHT METRIC CARD */}
+                            <div className="bg-indigo-900 text-indigo-100 rounded-3xl p-6 shadow-md border border-indigo-950 flex items-start space-x-4">
+                                <Icons.Sparkles className="w-8 h-8 text-indigo-300 flex-shrink-0" />
+                                <div className="space-y-1">
+                                    <h4 className="font-bold text-white text-sm">Metformin Longevity Synergy</h4>
+                                    <p className="text-xs text-indigo-200 leading-relaxed">
+                                        Mikail, your daily 1000mg Metformin intake (500mg Morning & 500mg Evening) works optimal under split dosing. This mimics circadian fasting phases and provides a sustained inhibition of gluconeogenesis in the liver overnight.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* NEW MEDICATION FORM - 5 COLS */}
+                        <div className="lg:col-span-5">
+                            <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm">
+                                <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center space-x-2">
+                                    <Icons.Plus className="text-indigo-600" />
+                                    <span>Register New Medication</span>
+                                </h3>
+
+                                <form onSubmit={handleAddMedication} className="space-y-4">
+                                    <div>
+                                        <label className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">Medication Name</label>
+                                        <input 
+                                            type="text" 
+                                            required
+                                            placeholder="e.g., Metformin"
+                                            value={medName} 
+                                            onChange={(e) => setMedName(e.target.value)}
+                                            className="w-full mt-1 bg-slate-50 focus:bg-white border border-slate-200 focus:border-indigo-500 rounded-xl p-3 text-xs font-semibold focus:outline-none transition-all"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">Dosage Amount</label>
+                                        <input 
+                                            type="text" 
+                                            required
+                                            placeholder="e.g., 500mg, 1 tablet"
+                                            value={medDosage} 
+                                            onChange={(e) => setMedDosage(e.target.value)}
+                                            className="w-full mt-1 bg-slate-50 focus:bg-white border border-slate-200 focus:border-indigo-500 rounded-xl p-3 text-xs font-semibold focus:outline-none transition-all"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <span className="text-[10px] font-bold uppercase text-slate-500 tracking-wider block mb-2">Routine Schedule Intake</span>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div 
+                                                onClick={() => setMedMorning(!medMorning)}
+                                                className={`p-3 border rounded-xl flex items-center space-x-2.5 cursor-pointer transition-all ${medMorning ? 'bg-amber-50/50 border-amber-300 text-amber-900 font-bold' : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-400'}`}
+                                            >
+                                                <div className={`w-4 h-4 rounded border flex items-center justify-center ${medMorning ? 'bg-amber-500 border-amber-500 text-white' : 'border-slate-300 bg-white'}`}>
+                                                    {medMorning && <Icons.Check className="w-3 h-3" />}
+                                                </div>
+                                                <span className="text-xs">☀️ Morning (Day)</span>
+                                            </div>
+
+                                            <div 
+                                                onClick={() => setMedEvening(!medEvening)}
+                                                className={`p-3 border rounded-xl flex items-center space-x-2.5 cursor-pointer transition-all ${medEvening ? 'bg-indigo-50/50 border-indigo-300 text-indigo-950 font-bold' : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-400'}`}
+                                            >
+                                                <div className={`w-4 h-4 rounded border flex items-center justify-center ${medEvening ? 'bg-indigo-600 border-indigo-600 text-white' : 'border-slate-300 bg-white'}`}>
+                                                    {medEvening && <Icons.Check className="w-3 h-3" />}
+                                                </div>
+                                                <span className="text-xs">🌙 Evening (Night)</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <button 
+                                        type="submit"
+                                        className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs shadow-md transition-all uppercase tracking-wider"
+                                    >
+                                        Register Medication
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            );
+        }
+
+        /* 4. DR. AI AGENT CHAT VIEW */
+        function DrAIView({ chatHistory, setChatHistory, glucose, bp, medications, documents }) {
+            const [userInput, setUserInput] = useState('');
+            const [isThinking, setIsThinking] = useState(false);
+
+            // Fetch latest statistics as live contexts
+            const latestGlucoseVal = glucose[0]?.value || 104;
+            const latestGlucoseContext = glucose[0]?.mealContext || 'Fasting';
+            const latestBPString = bp[0] ? `${bp[0].systolic}/${bp[0].diastolic}` : '118/79';
+            const latestPulse = bp[0]?.pulse || 68;
+            const medicationList = medications.filter(m => m.active).map(m => `${m.name} (${m.dosage})`).join(', ');
+
+            const handleSendMessage = (e) => {
+                e.preventDefault();
+                if (!userInput.trim()) return;
+
+                const userText = userInput;
+                const newHistory = [...chatHistory, { sender: 'user', text: userText }];
+                setChatHistory(newHistory);
+                setUserInput('');
+                setIsThinking(true);
+
+                // Professional contextual AI reply matching Mikail's medical logs
+                setTimeout(() => {
+                    let aiReply = '';
+                    const q = userText.toLowerCase();
+
+                    if (q.includes('sugar') || q.includes('glucose') || q.includes('stelo') || q.includes('diabet')) {
+                        aiReply = `Hello Mikail! Let's talk about your blood glucose status. Your current Dexcom Stelo CGM reads an average baseline of **${latestGlucoseVal} mg/dL** (${latestGlucoseContext}). This is optimal for metabolic health and anti-aging thresholds. Since you take Metformin daily, your insulin sensitivity is highly supported. I highly recommend taking a 10-minute walk post-lunch if you ever encounter readings approaching 130 mg/dL.`;
+                    } else if (q.includes('bp') || q.includes('blood pressure') || q.includes('hypertension') || q.includes('lisinopril')) {
+                        aiReply = `Hi Mikail. Regarding blood pressure: your last logged reading is **${latestBPString} mmHg** with a pulse of **${latestPulse} bpm**. This falls into the **Normal** range according to AHA guidelines. Your Lisinopril protocol (10mg Morning) is showing excellent clinical control. To support arterial longevity, continue targeting a potassium-rich diet to complement your lisinopril therapy.`;
+                    } else if (q.includes('medication') || q.includes('metformin') || q.includes('atorvastatin') || q.includes('pills')) {
+                        aiReply = `Mikail, looking at your active longevity protocol, you have **${medications.filter(m=>m.active).length} active medications**: ${medicationList}. \n\n* **Metformin** (500mg Day/Night) optimizes insulin-sensitizing pathways.\n* **Lisinopril** (10mg Morning) safeguards renal and cardiac compliance.\n* **Atorvastatin** (20mg Evening) regulates ApoB/lipid limits.\n\nBe sure to take Atorvastatin exactly at night since the HMG-CoA reductase enzyme is highly active while sleeping!`;
+                    } else if (q.includes('labs') || q.includes('lipid') || q.includes('cholesterol') || q.includes('thyroid') || q.includes('tsh')) {
+                        aiReply = `Mikail, looking at your uploaded lab database, your Quest Diagnostics Lipid Panel shows a **Total Cholesterol of 195 mg/dL** and **LDL at 121 mg/dL**. This is stable, but for extreme cardiovascular longevity, we want to target LDL under 100 mg/dL with Atorvastatin support. Your **TSH is 1.85 mIU/L**, which indicates completely healthy thyroid function.`;
+                    } else if (q.includes('longevity') || q.includes('anti-aging') || q.includes('sinclair') || q.includes('rapamycin')) {
+                        aiReply = `Hello Mikail! Longevity science is evolving rapidly. At age 46, prioritizing mitochondrial efficiency, AMPK pathways (activated by your Metformin), and cellular autophagy is highly strategic. Keep your glucose variability low via your Stelo CGM, maintain your blood pressure at the optimal 115/75 range, and prioritize VO2 max cardiorespiratory fitness. This represents the gold standard of longevity protocols.`;
+                    } else {
+                        aiReply = `Hello Mikail Kocak! I am analyzing your comprehensive health dossier (Age 46, latest BP: ${latestBPString} mmHg, Stelo Glucose: ${latestGlucoseVal} mg/dL). \n\nYour question: "${userText}" touches on an important aspect of your health tracking. Based on your current biomarkers and active split-dose medications, your baseline indices are very healthy. \n\nHow can I elaborate further on your current metrics? Let me know if you would like me to dissect your Lipid panel or recommend blood work targets!`;
+                    }
+
+                    // Append disclaimer
+                    aiReply += `\n\n*Disclaimer: I am Dr. AI, your digital health advisor. Always discuss medication modifications and clinical results with your actual primary physician.*`;
+
+                    setChatHistory([...newHistory, { sender: 'ai', text: aiReply }]);
+                    setIsThinking(false);
+                }, 1200);
+            };
+
+            return (
+                <div className="space-y-6">
+                    <div>
+                        <h2 className="text-2xl font-black text-slate-900 tracking-tight">Dr. AI Consultation Sandbox</h2>
+                        <p className="text-sm text-slate-500">Secure, hyper-personalized conversational agent with full context awareness of your active health tracker dossier.</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                        
+                        {/* LEFT COLUMN: ACTIVE SYNCED BIOMARKER BRIEFING - 4 COLS */}
+                        <div className="lg:col-span-4 space-y-4">
+                            <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm">
+                                <span className="text-[10px] bg-indigo-50 text-indigo-700 font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider">Synced AI Profile</span>
+                                <h3 className="text-base font-bold text-slate-900 mt-2">Mikail Kocak Dossier</h3>
+                                <p className="text-xs text-slate-400 mt-1">Dr. AI is synchronized with your profile details & live biomarkers:</p>
+
+                                <div className="space-y-3.5 mt-4 pt-4 border-t border-slate-100 text-xs">
+                                    <div className="flex justify-between items-center bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                                        <span className="text-slate-500 font-semibold flex items-center"><Icons.User className="w-3.5 h-3.5 mr-1 text-slate-400" /> Patient Age:</span>
+                                        <strong className="text-slate-800">46 (23-July-1979)</strong>
+                                    </div>
+                                    <div className="flex justify-between items-center bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                                        <span className="text-slate-500 font-semibold flex items-center"><Icons.Droplet className="w-3.5 h-3.5 mr-1 text-indigo-500" /> Glucose (Stelo):</span>
+                                        <strong className="text-slate-800">{latestGlucoseVal} mg/dL</strong>
+                                    </div>
+                                    <div className="flex justify-between items-center bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                                        <span className="text-slate-500 font-semibold flex items-center"><Icons.Heart className="w-3.5 h-3.5 mr-1 text-red-500" /> Blood Pressure:</span>
+                                        <strong className="text-slate-800">{latestBPString} mmHg</strong>
+                                    </div>
+                                    <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 space-y-1">
+                                        <span className="text-slate-500 font-semibold block uppercase text-[10px] tracking-wider">Active Prescriptions:</span>
+                                        <p className="text-slate-700 font-bold leading-relaxed text-[11px]">{medicationList || 'No active medications'}</p>
+                                    </div>
+                                    <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 space-y-1">
+                                        <span className="text-slate-500 font-semibold block uppercase text-[10px] tracking-wider">Extracted Lab Reports:</span>
+                                        <ul className="list-disc pl-4 space-y-0.5 text-slate-700 font-bold text-[10px]">
+                                            <li>Quest Lipid Panel (Parsed)</li>
+                                            <li>TSH Thyroid Panel (Parsed)</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* PREMADE SAMPLE QUERIES */}
+                            <div className="bg-indigo-50/50 rounded-3xl p-6 border border-indigo-100/60">
+                                <span className="text-[10px] font-bold text-indigo-700 uppercase tracking-widest block mb-2">Suggested Consultation Prompts</span>
+                                <div className="space-y-1.5 text-xs text-indigo-900">
+                                    <button onClick={() => setUserInput("How is my blood sugar trend doing with my Metformin schedule?")} className="w-full text-left bg-white hover:bg-indigo-50 p-2 border border-indigo-100 rounded-xl font-semibold text-slate-700 shadow-sm transition-all truncate block">
+                                        "How is my blood sugar trend doing?"
+                                    </button>
+                                    <button onClick={() => setUserInput("Analyze my Atorvastatin dose in relation to my last Lipid panel.")} className="w-full text-left bg-white hover:bg-indigo-50 p-2 border border-indigo-100 rounded-xl font-semibold text-slate-700 shadow-sm transition-all truncate block">
+                                        "Analyze Atorvastatin and Lipid panel"
+                                    </button>
+                                    <button onClick={() => setUserInput("Is my blood pressure reading considered safe with Lisinopril?")} className="w-full text-left bg-white hover:bg-indigo-50 p-2 border border-indigo-100 rounded-xl font-semibold text-slate-700 shadow-sm transition-all truncate block">
+                                        "Is my BP considered optimal?"
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* RIGHT COLUMN: INTERACTIVE LIVE CHATPORT - 8 COLS */}
+                        <div className="lg:col-span-8 flex flex-col bg-white border border-slate-200/80 rounded-3xl overflow-hidden h-[540px] shadow-sm">
+                            {/* CHAT HEADER */}
+                            <div className="bg-slate-900 text-white p-4 flex items-center justify-between">
+                                <div className="flex items-center space-x-3">
+                                    <div className="p-2 bg-indigo-600 rounded-xl">
+                                        <Icons.Stethoscope className="text-indigo-100 w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xs font-bold">Dr. AI Agent Chatbot</h3>
+                                        <span className="text-[9px] text-emerald-400 font-bold uppercase tracking-wider flex items-center">
+                                            <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full inline-block mr-1 animate-ping"></span>
+                                            Active Biomarker Sync Mode
+                                        </span>
+                                    </div>
+                                </div>
+                                <span className="text-[10px] bg-white/10 text-white px-2.5 py-1 rounded-full font-bold">HIPAA Secure Portal</span>
+                            </div>
+
+                            {/* MESSAGES VIEW */}
+                            <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 bg-slate-50/50">
+                                {chatHistory.map((msg, i) => (
+                                    <div key={i} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                        <div className={`max-w-[85%] rounded-2xl p-4 leading-relaxed text-xs shadow-sm ${msg.sender === 'user' ? 'bg-indigo-600 text-white font-medium rounded-tr-none' : 'bg-white border border-slate-200/80 text-slate-700 rounded-tl-none whitespace-pre-line'}`}>
+                                            {msg.text}
+                                        </div>
+                                    </div>
+                                ))}
+
+                                {isThinking && (
+                                    <div className="flex justify-start">
+                                        <div className="bg-white border border-slate-100 rounded-2xl p-4 rounded-tl-none flex items-center space-x-2 text-xs text-slate-500">
+                                            <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                                            <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                                            <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                                            <span className="font-semibold text-[11px] ml-1">Dr. AI is calculating biomarkers...</span>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* INPUT FORM */}
+                            <form onSubmit={handleSendMessage} className="p-4 bg-white border-t border-slate-100 flex items-center space-x-3 flex-shrink-0">
+                                <input 
+                                    type="text" 
+                                    placeholder="Ask Dr. AI about blood pressure, glucose, longevity protocols or labs..."
+                                    value={userInput}
+                                    onChange={(e) => setUserInput(e.target.value)}
+                                    className="flex-1 bg-slate-50 focus:bg-white border border-slate-200 focus:border-indigo-500 focus:outline-none rounded-xl px-4 py-3 text-xs font-semibold transition-all"
+                                />
+                                <button 
+                                    type="submit"
+                                    className="p-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-md transition-all flex items-center justify-center flex-shrink-0"
+                                >
+                                    <Icons.ArrowRight className="w-5 h-5" />
+                                </button>
+                            </form>
+                        </div>
+
+                    </div>
+                </div>
+            );
+        }
+
+        /* 5. NEWS / LONGEVITY UPDATES COMPONENT */
+        function NewsView({ news, setNews, selectedNews, setSelectedNews }) {
+            const [searchQuery, setSearchQuery] = useState('');
+
+            const filteredNews = news.filter(art => 
+                art.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                art.category.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                art.summary.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+
+            const handleToggleBookmark = (id, e) => {
+                e.stopPropagation();
+                setNews(news.map(art => art.id === id ? { ...art, bookmarked: !art.bookmarked } : art));
+                if (selectedNews && selectedNews.id === id) {
+                    setSelectedNews({ ...selectedNews, bookmarked: !selectedNews.bookmarked });
+                }
+            };
+
+            return (
+                <div className="space-y-6">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div>
+                            <h2 className="text-2xl font-black text-slate-900 tracking-tight">Longevity Science & Health Updates</h2>
+                            <p className="text-sm text-slate-500">Stay informed with curated molecular updates, health debates, and continuous metabolic breakthroughs.</p>
+                        </div>
+
+                        {/* SEARCH INPUT */}
+                        <div className="w-full md:w-72">
+                            <input 
+                                type="text" 
+                                placeholder="Search articles or categories..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full bg-white border border-slate-200 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-xs font-medium focus:outline-none shadow-sm transition-all"
+                            />
+                        </div>
+                    </div>
+
+                    {/* NEWS CONTENT WINDOWS */}
+                    {selectedNews ? (
+                        /* EXPANDED VIEW */
+                        <div className="bg-white rounded-3xl border border-slate-200/80 p-6 md:p-8 space-y-6 shadow-sm">
+                            <button onClick={() => setSelectedNews(null)} className="inline-flex items-center space-x-1 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs font-bold text-slate-700 transition-all">
+                                <span>← Back to Articles</span>
+                            </button>
+
+                            <div className="space-y-3">
+                                <div className="flex justify-between items-start">
+                                    <span className="text-[10px] bg-indigo-50 text-indigo-700 font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                                        {selectedNews.category}
+                                    </span>
+                                    <button onClick={(e) => handleToggleBookmark(selectedNews.id, e)} className="text-slate-400 hover:text-indigo-600">
+                                        {selectedNews.bookmarked ? (
+                                            <span className="text-xs bg-indigo-600 text-white font-bold px-2 py-1 rounded-lg">★ Bookmarked</span>
+                                        ) : (
+                                            <span className="text-xs border border-slate-200 hover:border-indigo-200 hover:bg-indigo-50 px-2 py-1 rounded-lg">☆ Bookmark</span>
+                                        )}
+                                    </button>
+                                </div>
+                                <h3 className="text-2xl font-black text-slate-950 leading-tight">{selectedNews.title}</h3>
+                                <div className="flex items-center space-x-3 text-xs text-slate-400 font-medium">
+                                    <span>{selectedNews.source}</span>
+                                    <span>•</span>
+                                    <span>{selectedNews.date}</span>
+                                    <span>•</span>
+                                    <span>{selectedNews.readTime}</span>
+                                </div>
+                            </div>
+
+                            <div className="prose prose-slate max-w-none text-sm text-slate-700 leading-relaxed border-t border-slate-100 pt-6 whitespace-pre-line font-medium">
+                                {selectedNews.content}
+                            </div>
+
+                            <div className="bg-indigo-50 rounded-2xl p-4 border border-indigo-100 flex items-start space-x-3.5 text-xs text-indigo-900 leading-relaxed">
+                                <Icons.Sparkles className="w-5 h-5 text-indigo-500 flex-shrink-0 mt-0.5" />
+                                <div>
+                                    <strong className="font-bold text-indigo-950 block mb-1">Dr. AI Clinician Takeaway for Mikail:</strong>
+                                    This research relates deeply to your ongoing regimen of metformin. Split metabolic cellular dosage ensures high tissue saturation while mitigating systemic inflammatory pathways (senescence).
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        /* GRID LIST VIEW */
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {filteredNews.map((art) => (
+                                <div 
+                                    key={art.id} 
+                                    onClick={() => setSelectedNews(art)}
+                                    className="bg-white hover:bg-indigo-50/10 rounded-3xl border border-slate-200/80 hover:border-indigo-200/80 p-5 shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col justify-between space-y-4"
+                                >
+                                    <div className="space-y-3">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-[10px] bg-indigo-50 text-indigo-700 font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                                                {art.category}
+                                            </span>
+                                            <button onClick={(e) => handleToggleBookmark(art.id, e)} className="text-slate-300 hover:text-indigo-600">
+                                                {art.bookmarked ? (
+                                                    <span className="text-amber-500 text-base">★</span>
+                                                ) : (
+                                                    <span className="text-slate-300 text-base">☆</span>
+                                                )}
+                                            </button>
+                                        </div>
+                                        <h3 className="text-base font-bold text-slate-900 leading-snug hover:text-indigo-600 transition-all">
+                                            {art.title}
+                                        </h3>
+                                        <p className="text-xs text-slate-500 leading-relaxed line-clamp-3">
+                                            {art.summary}
+                                        </p>
+                                    </div>
+
+                                    <div className="flex items-center justify-between text-[11px] text-slate-400 border-t border-slate-50 pt-3 font-medium">
+                                        <span>{art.source} • {art.date}</span>
+                                        <span className="text-indigo-600 font-bold flex items-center">
+                                            Read More <Icons.ArrowRight className="w-3.5 h-3.5 ml-1" />
+                                        </span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        /* 6. DATA EXPORT & REPORTS COMPONENT (PDF KEEP DATAS) */
+        function DataExportView({ glucose, bp, medications, documents, handleClearAllData }) {
+            
+            const handlePrintReport = () => {
+                window.print();
+            };
+
+            return (
+                <div className="space-y-6">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div>
+                            <h2 className="text-2xl font-black text-slate-900 tracking-tight">Health Data Export & Reports</h2>
+                            <p className="text-sm text-slate-500">Download formatted PDF medical dossiers to present directly to your doctor during clinical visits.</p>
+                        </div>
+                        <div className="flex gap-2 w-full md:w-auto">
+                            <button 
+                                onClick={handleClearAllData}
+                                className="flex-1 md:flex-none px-4 py-2.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 font-bold rounded-xl text-xs transition-all"
+                            >
+                                Reset Sandbox Data
+                            </button>
+                            <button 
+                                onClick={handlePrintReport}
+                                className="flex-1 md:flex-none px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-2 shadow-md transition-all"
+                            >
+                                <Icons.Download className="w-4 h-4 text-white" />
+                                <span>Export PDF Report</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* PRINT COMPLIANT COMPACT SUMMARY CARD */}
+                    <div id="print-area" className="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 space-y-6 shadow-sm">
+                        
+                        {/* PDF BRANDING HEADER */}
+                        <div className="flex justify-between items-start border-b border-slate-200 pb-6">
+                            <div>
+                                <span className="text-[10px] bg-slate-100 text-slate-600 font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider">Clinical Vitals Summary Dossier</span>
+                                <h3 className="text-2xl font-black text-slate-900 mt-2">Healty Tracker Report</h3>
+                                <p className="text-xs text-slate-400 mt-0.5">Report compiled dynamically on June 17, 2026</p>
+                            </div>
+                            <div className="text-right text-xs">
+                                <h4 className="font-extrabold text-slate-800">Mikail KOCAK</h4>
+                                <span className="text-slate-400">DOB: 23-July-1979 (Age 46)</span>
+                                <span className="block text-[10px] text-slate-500 font-medium">Gender: Male</span>
+                            </div>
+                        </div>
+
+                        {/* SUMMARY CARDS GRID */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Last Blood Sugar</span>
+                                <h4 className="text-xl font-extrabold text-slate-800 mt-1">{glucose[0]?.value || '--'} mg/dL</h4>
+                                <span className="text-[10px] text-emerald-600 font-semibold">{glucose[0]?.mealContext || 'Fasting'}</span>
+                            </div>
+                            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Last Blood Pressure</span>
+                                <h4 className="text-xl font-extrabold text-slate-800 mt-1">{bp[0] ? `${bp[0].systolic}/${bp[0].diastolic}` : '--/--'}</h4>
+                                <span className="text-[10px] text-slate-500 font-semibold">Pulse: {bp[0]?.pulse || '--'} bpm</span>
+                            </div>
+                            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 col-span-2">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Active Medication Regimen</span>
+                                <p className="text-[11px] font-extrabold text-slate-800 mt-1 leading-normal truncate">
+                                    {medications.filter(m=>m.active).map(m=>m.name).join(', ')}
+                                </p>
+                                <span className="text-[10px] text-indigo-600 font-semibold">Morning & Evening Dosing</span>
+                            </div>
+                        </div>
+
+                        {/* DETAILED TABLES */}
+                        <div className="space-y-6 pt-4 border-t border-slate-100">
+                            
+                            {/* GLUCOSE LOG */}
+                            <div>
+                                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2.5">1. Historical Blood Glucose Logs</h4>
+                                <div className="border border-slate-100 rounded-2xl overflow-hidden">
+                                    <table className="w-full text-left text-xs bg-white">
+                                        <thead>
+                                            <tr className="bg-slate-50 border-b border-slate-100 text-slate-500 uppercase font-semibold">
+                                                <th className="p-3">Logged Date</th>
+                                                <th className="p-3">Glucose value</th>
+                                                <th className="p-3">Schedule Context</th>
+                                                <th className="p-3">Extracted notes</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-100">
+                                            {glucose.map((g) => (
+                                                <tr key={g.id}>
+                                                    <td className="p-3 font-semibold text-slate-600">{g.date}</td>
+                                                    <td className="p-3 font-bold text-slate-800">{g.value} mg/dL</td>
+                                                    <td className="p-3">
+                                                        <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] font-bold">
+                                                            {g.timeOfDay} • {g.mealContext}
+                                                        </span>
+                                                    </td>
+                                                    <td className="p-3 text-slate-500 italic font-medium">{g.notes || '--'}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            {/* BLOOD PRESSURE LOG */}
+                            <div>
+                                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2.5">2. Historical Blood Pressure Logs</h4>
+                                <div className="border border-slate-100 rounded-2xl overflow-hidden">
+                                    <table className="w-full text-left text-xs bg-white">
+                                        <thead>
+                                            <tr className="bg-slate-50 border-b border-slate-100 text-slate-500 uppercase font-semibold">
+                                                <th className="p-3">Measurement Date</th>
+                                                <th className="p-3">Blood Pressure (mmHg)</th>
+                                                <th className="p-3">Pulse Rate</th>
+                                                <th className="p-3">Context Details</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-100">
+                                            {bp.map((b) => (
+                                                <tr key={b.id}>
+                                                    <td className="p-3 font-semibold text-slate-600">{b.date} ({b.timeOfDay})</td>
+                                                    <td className="p-3 font-bold text-slate-800">{b.systolic}/{b.diastolic} mmHg</td>
+                                                    <td className="p-3 font-semibold text-slate-700">{b.pulse} bpm</td>
+                                                    <td className="p-3 text-slate-500 italic font-medium">{b.notes || '--'}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        const container = document.getElementById('root');
+        const root = ReactDOM.createRoot(container);
+        root.render(<App />);
+    </script>
+</body>
 </html>
